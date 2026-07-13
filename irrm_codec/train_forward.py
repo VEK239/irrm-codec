@@ -4,10 +4,11 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
-from irrm_codec.batch_cache import cleanup_batch_cache, prepare_cached_training_data, save_training_metadata
-from irrm_codec.datasets import collate_forward
+from irrm_codec.dataio import load_airr_with_embeddings
+from irrm_codec.datasets import ForwardDataset, collate_forward, validate_dataframe
 from irrm_codec.forward_model import ForwardModel
 from irrm_codec.losses import forward_loss, forward_metrics
 from irrm_codec.utils import (
@@ -19,6 +20,7 @@ from irrm_codec.utils import (
     setup_logging,
     summarize_metrics,
 )
+from irrm_codec.wandb_utils import init_wandb_run, log_wandb_lr, log_wandb_metrics
 
 
 def parse_args():
@@ -30,6 +32,13 @@ def parse_args():
     parser.add_argument("--clone-id-col", default="clone_id")
     parser.add_argument("--embedding-column", default="tcremp_emb")
     parser.add_argument("--max-len", type=int, default=40)
+    parser.add_argument("--token-embedding-dim", type=int, default=64)
+    parser.add_argument("--hidden-dim", type=int, default=192)
+    parser.add_argument("--mlp-dim", type=int, default=512)
+    parser.add_argument("--mlp-hidden-dim", type=int, default=1024)
+    parser.add_argument("--dropout", type=float, default=0.2)
+    parser.add_argument("--dilations", default="1,2,4,8")
+    parser.add_argument("--encoder-type", choices=["residual", "plain_conv"], default="residual")
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--lr", type=float, default=1e-3)
@@ -38,9 +47,11 @@ def parse_args():
     parser.add_argument("--val-fraction", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--num-workers", type=int, default=0)
-    parser.add_argument("--reader-batch-size", type=int, default=4096)
-    parser.add_argument("--cache-batch-size", type=int, default=4096)
-    parser.add_argument("--cache-dir", default="")
+    parser.add_argument("--wandb-project", default="irrm-codec")
+    parser.add_argument("--wandb-entity", default="")
+    parser.add_argument("--wandb-run-name", default="")
+    parser.add_argument("--wandb-dir", default="")
+    parser.add_argument("--wandb-mode", choices=["online", "offline", "disabled"], default="online")
     parser.add_argument("--log-interval", type=int, default=10)
     parser.add_argument("--no-progress", action="store_true")
     return parser.parse_args()
@@ -105,43 +116,127 @@ def main():
     device = choose_device()
     output_dir = Path(args.output_dir)
     logger = setup_logging(output_dir / "train.log")
-    cache_dir = None
+    run = None
 
     try:
         logger.info("starting forward training")
         logger.info("output_dir=%s", output_dir.resolve())
         logger.info("device=%s seed=%d", device, args.seed)
         logger.info(
-            "hyperparameters batch_size=%d reader_batch_size=%d cache_batch_size=%d epochs=%d lr=%.6f weight_decay=%.6f max_len=%d num_workers=%d log_interval=%d",
+            "hyperparameters batch_size=%d epochs=%d lr=%.6f weight_decay=%.6f max_len=%d token_embedding_dim=%d hidden_dim=%d mlp_dim=%d mlp_hidden_dim=%d dropout=%.3f dilations=%s encoder_type=%s num_workers=%d log_interval=%d",
             args.batch_size,
-            args.reader_batch_size,
-            args.cache_batch_size,
             args.epochs,
             args.lr,
             args.weight_decay,
             args.max_len,
+            args.token_embedding_dim,
+            args.hidden_dim,
+            args.mlp_dim,
+            args.mlp_hidden_dim,
+            args.dropout,
+            args.dilations,
+            args.encoder_type,
             args.num_workers,
             args.log_interval,
         )
-
-        prepared = prepare_cached_training_data(
+        run = init_wandb_run(
             args,
-            logger,
-            task="forward",
+            output_dir,
+            {
+                "task": "forward",
+                "airr_path": args.airr_path,
+                "embeddings_path": args.embeddings_path,
+                "locus": args.locus,
+                "clone_id_col": args.clone_id_col,
+                "embedding_column": args.embedding_column,
+                "batch_size": args.batch_size,
+                "epochs": args.epochs,
+                "lr": args.lr,
+                "weight_decay": args.weight_decay,
+                "max_len": args.max_len,
+                "token_embedding_dim": args.token_embedding_dim,
+                "hidden_dim": args.hidden_dim,
+                "mlp_dim": args.mlp_dim,
+                "mlp_hidden_dim": args.mlp_hidden_dim,
+                "dropout": args.dropout,
+                "dilations": args.dilations,
+                "encoder_type": args.encoder_type,
+                "num_workers": args.num_workers,
+                "seed": args.seed,
+            },
+        )
+        logger.info("wandb_project=%s wandb_mode=%s", args.wandb_project, args.wandb_mode)
+
+        df, emb_array, merge_stats = load_airr_with_embeddings(
+            airr_path=args.airr_path,
+            embeddings_path=args.embeddings_path,
+            locus=args.locus,
+            clone_id_col=args.clone_id_col,
+            embedding_column=args.embedding_column,
+        )
+        data_stats = validate_dataframe(df, emb_array, max_len=args.max_len, clone_id_col=args.clone_id_col)
+        embedding_dim = int(emb_array.shape[1])
+
+        rng = np.random.default_rng(args.seed)
+        indices = rng.permutation(len(df))
+        train_end = int(len(df) * args.train_fraction)
+        val_end = train_end + int(len(df) * args.val_fraction)
+        train_idx = indices[:train_end]
+        val_idx = indices[train_end:val_end]
+        test_idx = indices[val_end:]
+
+        train_df = df.iloc[train_idx].reset_index(drop=True)
+        val_df = df.iloc[val_idx].reset_index(drop=True)
+        test_df = df.iloc[test_idx].reset_index(drop=True)
+        train_emb = emb_array[train_idx]
+        val_emb = emb_array[val_idx]
+        test_emb = emb_array[test_idx]
+        split_row_counts = {
+            "train": int(len(train_df)),
+            "val": int(len(val_df)),
+            "test": int(len(test_df)),
+        }
+
+        mean = train_emb.mean(axis=0).astype(np.float32)
+        std = train_emb.std(axis=0).astype(np.float32)
+        std = np.where(std < 1e-8, 1.0, std).astype(np.float32)
+
+        train_loader = DataLoader(
+            ForwardDataset(train_df, (train_emb - mean) / std, max_len=args.max_len),
+            batch_size=args.batch_size,
+            shuffle=True,
+            num_workers=args.num_workers,
             collate_fn=collate_forward,
         )
-        manifest = prepared["manifest"]
-        mean = prepared["mean"]
-        std = prepared["std"]
-        data_stats = prepared["data_stats"]
-        merge_stats = prepared["merge_stats"]
-        split_row_counts = prepared["split_row_counts"]
-        cache_dir = prepared["cache_dir"]
-        train_loader = prepared["train_loader"]
-        val_loader = prepared["val_loader"]
-        test_loader = prepared["test_loader"]
+        val_loader = DataLoader(
+            ForwardDataset(val_df, (val_emb - mean) / std, max_len=args.max_len),
+            batch_size=args.batch_size,
+            shuffle=False,
+            num_workers=args.num_workers,
+            collate_fn=collate_forward,
+        )
+        test_loader = DataLoader(
+            ForwardDataset(test_df, (test_emb - mean) / std, max_len=args.max_len),
+            batch_size=args.batch_size,
+            shuffle=False,
+            num_workers=args.num_workers,
+            collate_fn=collate_forward,
+        )
 
-        model = ForwardModel(output_dim=merge_stats["embedding_dim"], max_len=args.max_len).to(device)
+        dilations = tuple(int(part.strip()) for part in args.dilations.split(",") if part.strip())
+        if not dilations:
+            raise ValueError("dilations must contain at least one integer.")
+        model = ForwardModel(
+            embedding_dim=args.token_embedding_dim,
+            hidden_dim=args.hidden_dim,
+            mlp_dim=args.mlp_dim,
+            mlp_hidden_dim=args.mlp_hidden_dim,
+            dropout=args.dropout,
+            dilations=dilations,
+            encoder_type=args.encoder_type,
+            output_dim=embedding_dim,
+            max_len=args.max_len,
+        ).to(device)
         optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
         num_parameters = sum(param.numel() for param in model.parameters())
         num_trainable_parameters = sum(param.numel() for param in model.parameters() if param.requires_grad)
@@ -152,7 +247,7 @@ def main():
             split_row_counts["train"],
             split_row_counts["val"],
             split_row_counts["test"],
-            merge_stats["embedding_dim"],
+            embedding_dim,
         )
         logger.info(
             "dataloader batches train=%d val=%d test=%d",
@@ -166,13 +261,20 @@ def main():
             num_trainable_parameters,
         )
 
-        save_training_metadata(
-            output_dir,
-            args,
-            data_stats,
-            merge_stats,
-            split_row_counts,
-            manifest,
+        save_json(
+            output_dir / "data_stats.json",
+            {
+                **data_stats,
+                **merge_stats,
+                "embedding_dim": embedding_dim,
+                "airr_path": args.airr_path,
+                "embeddings_path": args.embeddings_path,
+                "train_size": int(split_row_counts["train"]),
+                "val_size": int(split_row_counts["val"]),
+                "test_size": int(split_row_counts["test"]),
+                "standardizer": {"mean_path": "mean.npy", "std_path": "std.npy"},
+                "checkpoints": {"best": "best.pt", "last": "last.pt"},
+            },
         )
         np.save(output_dir / "mean.npy", mean)
         np.save(output_dir / "std.npy", std)
@@ -204,6 +306,9 @@ def main():
                 not args.no_progress,
             )
             history.append({"epoch": epoch, "train": train_metrics, "val": val_metrics})
+            log_wandb_metrics(run, "train", train_metrics, epoch)
+            log_wandb_metrics(run, "val", val_metrics, epoch)
+            log_wandb_lr(run, optimizer, epoch)
 
             save_checkpoint(
                 output_dir / "last.pt",
@@ -211,7 +316,18 @@ def main():
                 optimizer,
                 epoch,
                 val_metrics,
-                extra={"task": "forward", "max_len": args.max_len, "embedding_dim": merge_stats["embedding_dim"]},
+                extra={
+                    "task": "forward",
+                    "max_len": args.max_len,
+                    "embedding_dim": embedding_dim,
+                    "token_embedding_dim": args.token_embedding_dim,
+                    "hidden_dim": args.hidden_dim,
+                    "mlp_dim": args.mlp_dim,
+                    "mlp_hidden_dim": args.mlp_hidden_dim,
+                    "dropout": args.dropout,
+                    "dilations": args.dilations,
+                    "encoder_type": args.encoder_type,
+                },
             )
             logger.info("saved checkpoint path=%s", output_dir / "last.pt")
 
@@ -223,7 +339,18 @@ def main():
                     optimizer,
                     epoch,
                     val_metrics,
-                    extra={"task": "forward", "max_len": args.max_len, "embedding_dim": merge_stats["embedding_dim"]},
+                    extra={
+                        "task": "forward",
+                        "max_len": args.max_len,
+                        "embedding_dim": embedding_dim,
+                        "token_embedding_dim": args.token_embedding_dim,
+                        "hidden_dim": args.hidden_dim,
+                        "mlp_dim": args.mlp_dim,
+                        "mlp_hidden_dim": args.mlp_hidden_dim,
+                        "dropout": args.dropout,
+                        "dilations": args.dilations,
+                        "encoder_type": args.encoder_type,
+                    },
                 )
                 logger.info("new best checkpoint path=%s val_loss=%.4f", output_dir / "best.pt", best_val_loss)
 
@@ -249,6 +376,7 @@ def main():
             args.log_interval,
             not args.no_progress,
         )
+        log_wandb_metrics(run, "test", test_metrics, len(history))
         save_json(output_dir / "history.json", history)
         save_json(output_dir / "test_metrics.json", test_metrics)
         logger.info(
@@ -258,8 +386,8 @@ def main():
             test_metrics["cosine"],
         )
     finally:
-        if cache_dir is not None:
-            cleanup_batch_cache(cache_dir, logger=logger)
+        if run is not None:
+            run.finish()
 
 
 if __name__ == "__main__":
