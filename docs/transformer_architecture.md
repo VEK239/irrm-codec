@@ -11,14 +11,57 @@ joint architecture.
 ## Default architecture
 
 ```mermaid
-flowchart TD
-    A["CDR3 amino acids"] --> B["4-layer Transformer encoder"]
-    B --> Z["320-D latent vector"]
-    Z --> C["TCRemP head: 9,000-D"]
-    Z --> D["pgen head: scalar"]
-    Z --> E["autoregressive Transformer decoder"]
-    E --> F["reconstructed CDR3"]
+flowchart LR
+    subgraph INPUT["Encoder input - choose one tokenizer"]
+        AA["CDR3 amino-acid sequence"]
+        CHAR["Character tokenizer<br/>fixed amino-acid vocabulary"]
+        WP["WordPiece tokenizer<br/>train-split vocabulary"]
+        AA --> CHAR
+        AA --> WP
+    end
+
+    subgraph ENCODER["Shared sequence encoder"]
+        TOK["Token embeddings + learned positions<br/>prepend learned CLS token"]
+        TR["4 x pre-norm Transformer encoder<br/>d_model 320 | 8 heads | FFN 1,280"]
+        PROJ["CLS projection<br/>LayerNorm -> Linear -> GELU -> LayerNorm"]
+        TOK --> TR --> PROJ
+    end
+
+    CHAR --> TOK
+    WP --> TOK
+    PROJ --> Z["Shared clonotype representation<br/>z in R^320"]
+
+    subgraph HEADS["Jointly trained task heads"]
+        TCREMP["TCRemP MLP<br/>320 -> 1,024 -> 9,000"]
+        PGEN["pgen MLP<br/>320 -> 256 -> 1"]
+        MEM["Latent projection<br/>4 decoder memory tokens x 320"]
+        DEC["4 x causal Transformer decoder<br/>character vocabulary only"]
+        OUT["Tied character output projection<br/>autoregressive amino-acid logits"]
+        MEM --> DEC --> OUT
+    end
+
+    Z --> TCREMP --> Y1["Standardized TCRemP prediction"]
+    Z --> PGEN --> Y2["Standardized log10 pgen prediction"]
+    Z --> MEM
+    TEACHER["Character teacher-forcing input<br/>BOS + original amino acids"] -.-> DEC
+    OUT --> Y3["Reconstructed CDR3<br/>amino acids + EOS"]
+
+    classDef input fill:#e8f1ff,stroke:#2563eb,color:#172554,stroke-width:1.5px;
+    classDef shared fill:#ede9fe,stroke:#7c3aed,color:#2e1065,stroke-width:1.5px;
+    classDef latent fill:#fef3c7,stroke:#d97706,color:#451a03,stroke-width:2.5px;
+    classDef head fill:#dcfce7,stroke:#16a34a,color:#052e16,stroke-width:1.5px;
+    classDef output fill:#fce7f3,stroke:#db2777,color:#500724,stroke-width:1.5px;
+
+    class AA,CHAR,WP,TEACHER input;
+    class TOK,TR,PROJ shared;
+    class Z latent;
+    class TCREMP,PGEN,MEM,DEC,OUT head;
+    class Y1,Y2,Y3 output;
 ```
+
+The encoder tokenizer is the only architectural alternative. Both variants share the
+same 320-dimensional bottleneck and task heads, while reconstruction always uses the
+fixed character vocabulary and must pass through the compact latent vector.
 
 - Input tokenization: two directly comparable model variants should be trained:
   character-level amino acids and WordPiece tokens. Both use the same fixed benchmark
