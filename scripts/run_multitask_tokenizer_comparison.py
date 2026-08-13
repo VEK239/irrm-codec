@@ -2,6 +2,7 @@
 
 import argparse
 import csv
+import hashlib
 import json
 import statistics
 import subprocess
@@ -32,44 +33,67 @@ def config_name(tokenizer_path: str | None) -> str:
     if tokenizer_path is None:
         return "char"
     path = Path(tokenizer_path)
-    return path.parent.name or path.stem
+    tokenizer_hash = hashlib.sha256(path.read_bytes()).hexdigest()[:10]
+    base_name = path.parent.name or path.stem
+    return f"{base_name}_{tokenizer_hash}"
 
 
 def run_one(args, tokenizer_path: str | None, seed: int) -> tuple[str, dict]:
     name = config_name(tokenizer_path)
     run_dir = Path(args.output_root) / name / f"seed_{seed}"
     metrics_path = run_dir / "test_metrics.json"
-    if args.force or not metrics_path.exists():
-        command = [
-            sys.executable,
-            "-m",
-            "irrm_codec.train_multitask",
-            "--data-dir",
-            args.data_dir,
-            "--output-dir",
-            str(run_dir),
-            "--train-subset",
-            args.train_subset,
-            "--seed",
-            str(seed),
-            "--epochs",
-            str(args.epochs),
-            "--batch-size",
-            str(args.batch_size),
-        ]
-        if tokenizer_path is None:
-            command.extend(["--tokenizer-type", "char"])
-        else:
-            command.extend(
-                [
-                    "--tokenizer-type",
-                    "wordpiece",
-                    "--tokenizer-path",
-                    tokenizer_path,
-                ]
+    request_path = run_dir / "comparison_request.json"
+    command = [
+        sys.executable,
+        "-m",
+        "irrm_codec.train_multitask",
+        "--data-dir",
+        args.data_dir,
+        "--output-dir",
+        str(run_dir),
+        "--train-subset",
+        args.train_subset,
+        "--seed",
+        str(seed),
+        "--epochs",
+        str(args.epochs),
+        "--batch-size",
+        str(args.batch_size),
+    ]
+    tokenizer_sha256 = None
+    if tokenizer_path is None:
+        command.extend(["--tokenizer-type", "char"])
+    else:
+        tokenizer_sha256 = hashlib.sha256(Path(tokenizer_path).read_bytes()).hexdigest()
+        command.extend(
+            [
+                "--tokenizer-type",
+                "wordpiece",
+                "--tokenizer-path",
+                tokenizer_path,
+            ]
+        )
+    command.extend(args.extra_args)
+    request = {
+        "arguments": command[1:],
+        "tokenizer_sha256": tokenizer_sha256,
+    }
+
+    if metrics_path.exists() and not args.force:
+        if not request_path.exists():
+            raise ValueError(
+                f"Existing results at {run_dir} have no comparison request metadata. "
+                "Use --force to replace them or choose a new --output-root."
             )
-        command.extend(args.extra_args)
+        previous_request = json.loads(request_path.read_text(encoding="utf-8"))
+        if previous_request != request:
+            raise ValueError(
+                f"Existing results at {run_dir} were produced by a different configuration. "
+                "Use --force to replace them or choose a new --output-root."
+            )
+    else:
         subprocess.run(command, check=True)
+        request_path.write_text(json.dumps(request, indent=2), encoding="utf-8")
     metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
     return name, metrics
 

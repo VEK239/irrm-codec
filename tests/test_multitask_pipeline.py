@@ -2,6 +2,7 @@ import importlib.util
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 from irrm_codec.tokenization import AA_VOCAB, EOS_ID, encode_raw, encode_reconstruction_pair
 
@@ -25,6 +26,32 @@ class TokenizationTest(unittest.TestCase):
     def test_raw_character_encoder_rejects_overflow(self):
         with self.assertRaises(ValueError):
             encode_raw("A" * 41, max_len=40)
+
+
+class ComparisonRunnerTest(unittest.TestCase):
+    def test_existing_metrics_require_matching_request(self):
+        from scripts.run_multitask_tokenizer_comparison import run_one
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run_dir = root / "char" / "seed_42"
+            run_dir.mkdir(parents=True)
+            (run_dir / "test_metrics.json").write_text('{"loss": 1.0}', encoding="utf-8")
+            (run_dir / "comparison_request.json").write_text(
+                '{"arguments": ["stale"]}',
+                encoding="utf-8",
+            )
+            args = SimpleNamespace(
+                output_root=str(root),
+                data_dir="data/benchmark/trb",
+                train_subset="1k",
+                epochs=3,
+                batch_size=2,
+                force=False,
+                extra_args=[],
+            )
+            with self.assertRaisesRegex(ValueError, "different configuration"):
+                run_one(args, None, 42)
 
 
 @unittest.skipUnless(HAS_TORCH, "PyTorch runtime is not installed")
@@ -78,6 +105,13 @@ class MultiTaskModelRuntimeTest(unittest.TestCase):
             losses["loss"].backward()
             self.assertTrue(torch.isfinite(losses["loss"]))
 
+    def test_partial_gradient_accumulation_group_uses_actual_size(self):
+        from irrm_codec.train_multitask import _gradient_accumulation_group_size
+
+        self.assertEqual(_gradient_accumulation_group_size(1, 3, 2), 2)
+        self.assertEqual(_gradient_accumulation_group_size(2, 3, 2), 2)
+        self.assertEqual(_gradient_accumulation_group_size(3, 3, 2), 1)
+
 
 
 @unittest.skipUnless(HAS_DATA_RUNTIME, "PyTorch/pandas/pyarrow runtime is not installed")
@@ -113,6 +147,54 @@ class MultiTaskDataRuntimeTest(unittest.TestCase):
             np.testing.assert_array_equal(filtered, source[[0, 3, 7]])
             if isinstance(filtered, np.memmap):
                 filtered._mmap.close()
+
+    def test_streamed_embeddings_align_by_clone_id(self):
+        import numpy as np
+        import pandas as pd
+
+        from benchmark.prepare_splits import load_embeddings
+        from irrm_codec.utils import setup_logging
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            parquet_path = root / "embeddings.parquet"
+            pd.DataFrame(
+                {
+                    "clone_id": ["b", "a", "c"],
+                    "x": [20.0, 10.0, 30.0],
+                    "y": [21.0, 11.0, 31.0],
+                }
+            ).to_parquet(parquet_path, index=False)
+            output_path = root / "embeddings.npy"
+            selected = load_embeddings(
+                parquet_path,
+                np.array([0, 1, 2]),
+                3,
+                output_path,
+                setup_logging(),
+                batch_size=2,
+                expected_clone_ids=["a", "b", "c"],
+            )
+            np.testing.assert_array_equal(
+                selected,
+                np.array([[10.0, 11.0], [20.0, 21.0], [30.0, 31.0]], dtype=np.float32),
+            )
+            if isinstance(selected, np.memmap):
+                selected._mmap.close()
+
+    def test_resume_falls_back_to_checkpoint_when_no_best_exists(self):
+        from irrm_codec.train_multitask import _resolve_best_checkpoint
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            output_dir = root / "new_output"
+            output_dir.mkdir()
+            resume_path = root / "last.pt"
+            resume_path.write_bytes(b"checkpoint")
+            self.assertEqual(
+                _resolve_best_checkpoint(output_dir, str(resume_path)),
+                resume_path,
+            )
 
     def test_prepared_data_and_standardizer(self):
         import numpy as np

@@ -151,6 +151,35 @@ def _batch_limit(loader, requested: int) -> int:
     return min(len(loader), requested) if requested > 0 else len(loader)
 
 
+def _gradient_accumulation_group_size(
+    step: int,
+    total_steps: int,
+    accumulation_steps: int,
+) -> int:
+    """Return the actual size of the accumulation group containing ``step``."""
+    group_start = ((step - 1) // accumulation_steps) * accumulation_steps
+    return min(accumulation_steps, total_steps - group_start)
+
+
+def _resolve_best_checkpoint(output_dir: Path, resume: str | None) -> Path:
+    """Find the best available checkpoint after a fresh or resumed run."""
+    candidates = [output_dir / "best.pt"]
+    if resume:
+        resume_path = Path(resume)
+        sibling_best = resume_path.parent / "best.pt"
+        if sibling_best not in candidates:
+            candidates.append(sibling_best)
+        if resume_path not in candidates:
+            candidates.append(resume_path)
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError(
+        "No best checkpoint is available. Expected one of: "
+        + ", ".join(str(candidate) for candidate in candidates)
+    )
+
+
 def run_epoch(
     *,
     model: IRRMCodecTransformer,
@@ -217,7 +246,12 @@ def run_epoch(
                     )
 
             if is_train:
-                scaled_loss = losses["loss"] / gradient_accumulation_steps
+                accumulation_group_size = _gradient_accumulation_group_size(
+                    step,
+                    limit,
+                    gradient_accumulation_steps,
+                )
+                scaled_loss = losses["loss"] / accumulation_group_size
                 scaler.scale(scaled_loss).backward()
                 should_step = (
                     step % gradient_accumulation_steps == 0 or step == limit
@@ -350,14 +384,17 @@ def main() -> None:
     tokenizer = resolve_encoder_tokenizer(args.tokenizer_type, args.tokenizer_path)
 
     standardizer_path = output_dir / "target_standardizer.npz"
-    if args.resume and standardizer_path.exists():
+    resume_standardizer_path = (
+        Path(args.resume).parent / "target_standardizer.npz"
+        if args.resume
+        else None
+    )
+    if resume_standardizer_path is not None and resume_standardizer_path.exists():
+        standardizer = TargetStandardizer.load(resume_standardizer_path)
+        if resume_standardizer_path.resolve() != standardizer_path.resolve():
+            standardizer.save(standardizer_path)
+    elif args.resume and standardizer_path.exists():
         standardizer = TargetStandardizer.load(standardizer_path)
-        if standardizer.pgen_target != args.pgen_target:
-            raise ValueError("Resume checkpoint and requested pgen target do not match.")
-        if standardizer.train_rows != len(train_indices):
-            raise ValueError("Resume standardizer and requested train subset do not match.")
-        if len(standardizer.tcremp_mean) != embeddings.shape[1]:
-            raise ValueError("Resume standardizer and TCRemP dimension do not match.")
     else:
         logger.info(
             "computing train-only target statistics rows=%d embedding_dim=%d",
@@ -372,6 +409,13 @@ def main() -> None:
             chunk_size=args.standardizer_chunk_size,
         )
         standardizer.save(standardizer_path)
+    if args.resume:
+        if standardizer.pgen_target != args.pgen_target:
+            raise ValueError("Resume checkpoint and requested pgen target do not match.")
+        if standardizer.train_rows != len(train_indices):
+            raise ValueError("Resume standardizer and requested train subset do not match.")
+        if len(standardizer.tcremp_mean) != embeddings.shape[1]:
+            raise ValueError("Resume standardizer and TCRemP dimension do not match.")
     standardizer_tensors = standardizer.as_torch(device)
 
     datasets = {
@@ -615,7 +659,13 @@ def main() -> None:
             logger.info("early stopping at epoch=%d", epoch)
             break
 
-    best_checkpoint = torch.load(output_dir / "best.pt", map_location=device)
+    best_checkpoint_path = _resolve_best_checkpoint(output_dir, args.resume)
+    if best_checkpoint_path != output_dir / "best.pt":
+        logger.warning(
+            "No best checkpoint was created in this output directory; evaluating %s instead.",
+            best_checkpoint_path,
+        )
+    best_checkpoint = torch.load(best_checkpoint_path, map_location=device)
     model.load_state_dict(best_checkpoint["model_state"])
     test_metrics = run_epoch(
         model=model,
