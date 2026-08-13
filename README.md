@@ -2,10 +2,13 @@
 
 Immune Receptor Rearrangement Model-based enCOder DECoder (IRRM-CODEC).
 
-`irrm-codec` contains two neural models for working with TCR CDR3 amino-acid sequences and TCRemP embeddings:
+`irrm-codec` contains legacy single-task models and a joint Transformer codec for
+working with TCR CDR3 amino-acid sequences, TCRemP embeddings, and generation probability:
 
 - forward model: predicts a TCRemP embedding from CDR3 sequence input
 - inverse model: reconstructs a CDR3 sequence from a TCRemP embedding
+- joint Transformer: maps char- or WordPiece-tokenized CDR3s through one 320-D
+  bottleneck and jointly predicts TCRemP, `log10(pgen)`, and the original CDR3
 
 The repository is organized as a small training package with Python entrypoints, Slurm launchers, and analysis notebooks for both single-run and multi-chain workflows.
 
@@ -85,6 +88,95 @@ Supported embedding layouts:
 If AIRR contains `clone_id`, the AIRR table and embeddings table are merged by `clone_id`. If AIRR does not contain `clone_id` but the two tables have the same number of rows, embeddings are matched to AIRR rows by row order.
 
 ## Training
+
+### Joint Transformer codec
+
+Prepare the common leakage-free TRB benchmark first. The command writes
+`dataset.parquet`, a memory-mappable `embeddings.npy`, fixed manifests, and pgen targets:
+
+```bash
+python -m benchmark.prepare_splits \
+  --airr-path data/zenodo/trb_background_100k.tsv \
+  --embeddings-path data/zenodo/trb_background_embeddings.parquet \
+  --output-dir data/benchmark/trb
+```
+
+Run a short character-tokenizer pipeline check on the fixed 1k training subset:
+
+```bash
+python -m irrm_codec.train_multitask \
+  --data-dir data/benchmark/trb \
+  --output-dir artifacts/multitask/char_1k \
+  --train-subset 1k \
+  --tokenizer-type char \
+  --epochs 3 \
+  --batch-size 32
+```
+
+Train leakage-free WordPiece tokenizers on exactly the selected training rows:
+
+```bash
+python scripts/train_benchmark_wordpiece.py \
+  --data-dir data/benchmark/trb \
+  --output-dir artifacts/tokenizers/trb_10k \
+  --train-subset 10k \
+  --vocab-sizes 64 128 256 512 1024 \
+  --min-frequency 2
+```
+
+Train the matched WordPiece-input model. Reconstruction remains character-level,
+so its exact-match metrics are directly comparable with the char-input model:
+
+```bash
+python -m irrm_codec.train_multitask \
+  --data-dir data/benchmark/trb \
+  --output-dir artifacts/multitask/wordpiece_256_10k \
+  --train-subset 10k \
+  --tokenizer-type wordpiece \
+  --tokenizer-path artifacts/tokenizers/trb_10k/wordpiece_vocab_256/tokenizer.json \
+  --epochs 40 \
+  --batch-size 64
+```
+
+For a matched three-seed char-versus-WordPiece experiment:
+
+```bash
+python scripts/run_multitask_tokenizer_comparison.py \
+  --data-dir data/benchmark/trb \
+  --output-root artifacts/multitask_comparison_10k \
+  --train-subset 10k \
+  --wordpiece-tokenizers \
+    artifacts/tokenizers/trb_10k/wordpiece_vocab_128/tokenizer.json \
+    artifacts/tokenizers/trb_10k/wordpiece_vocab_256/tokenizer.json \
+    artifacts/tokenizers/trb_10k/wordpiece_vocab_512/tokenizer.json \
+  --seeds 42 43 44
+```
+
+The joint trainer uses train-only standardization, memory maps the approximately
+3.6 GB TCRemP matrix, supports AMP and gradient accumulation, resumes checkpoints,
+and saves raw-space TCRemP/pgen metrics plus autoregressive sequence metrics.
+Its output directory contains:
+
+- `best.pt` and `last.pt`
+- `target_standardizer.npz`
+- `run_config.json` and `data_stats.json`
+- `history.json`
+- `test_metrics.json`
+- `test_predictions/`: per-batch 320-D latent vectors, raw TCRemP/pgen predictions,
+  row indices, and generated character sequences for downstream manuscript analysis
+
+The local wrapper is `scripts/train_multitask.sh`; the cluster launcher is
+`slurm/train_multitask.sbatch`. The benchmark can be prepared on the cluster with:
+
+```bash
+sbatch --export=ALL,\
+AIRR_PATH=/projects/immunestatus/vdjrearm/airr_format/trb_background_100k.tsv,\
+EMBEDDINGS_PATH=/projects/immunestatus/vdjdb/tcremp/trb_background_embeddings.parquet,\
+OUTPUT_DIR=data/benchmark/trb \
+slurm/prepare_multitask_benchmark.sbatch
+```
+
+### Legacy single-task models
 
 Run the training modules directly for local or notebook-driven experiments:
 
@@ -455,6 +547,8 @@ python -m irrm_codec.train_forward --help
 python -m irrm_codec.train_inverse --help
 python -m irrm_codec.calc_pgen_1mm --help
 python -m irrm_codec.train_pgen --help
+python -m irrm_codec.train_multitask --help
+python -m unittest discover -s tests -v
 ```
 
 Recommended workflow checks:
