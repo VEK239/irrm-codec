@@ -4,13 +4,16 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
-from irrm_codec.dataio import load_airr_with_embeddings
-from irrm_codec.datasets import ForwardDataset, collate_forward, validate_dataframe
+# TODO: implement switching using flags
+# Switch back to using batch_cache.py once it is fixed
+# from irrm_codec.batch_cache import cleanup_batch_cache, prepare_cached_training_data, save_training_metadata
+from irrm_codec.batch_nocache import cleanup_batch_cache, prepare_cached_training_data, save_training_metadata
+from irrm_codec.datasets import collate_forward
 from irrm_codec.forward_model import ForwardModel
 from irrm_codec.losses import forward_loss, forward_metrics
+from irrm_codec.tokenizer_cli import add_tokenizer_args, resolve_tokenizer
 from irrm_codec.utils import (
     choose_device,
     move_to_device,
@@ -31,6 +34,7 @@ def parse_args():
     parser.add_argument("--locus", default="alpha")
     parser.add_argument("--clone-id-col", default="clone_id")
     parser.add_argument("--embedding-column", default="tcremp_emb")
+    add_tokenizer_args(parser)
     parser.add_argument("--max-len", type=int, default=40)
     parser.add_argument("--token-embedding-dim", type=int, default=64)
     parser.add_argument("--hidden-dim", type=int, default=192)
@@ -43,10 +47,19 @@ def parse_args():
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
+    parser.add_argument(
+        "--num-conv-blocks",
+        type=int,
+        default=None,
+        help="Override --dilations with 1,2,4,... for this many convolution blocks.",
+    )
     parser.add_argument("--train-fraction", type=float, default=0.8)
     parser.add_argument("--val-fraction", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--num-workers", type=int, default=0)
+    parser.add_argument("--reader-batch-size", type=int, default=4096)
+    parser.add_argument("--cache-batch-size", type=int, default=4096)
+    parser.add_argument("--cache-dir", default="")
     parser.add_argument("--wandb-project", default="irrm-codec")
     parser.add_argument("--wandb-entity", default="")
     parser.add_argument("--wandb-run-name", default="")
@@ -116,6 +129,7 @@ def main():
     device = choose_device()
     output_dir = Path(args.output_dir)
     logger = setup_logging(output_dir / "train.log")
+    cache_dir = None
     run = None
 
     try:
@@ -139,6 +153,16 @@ def main():
             args.num_workers,
             args.log_interval,
         )
+        encode_fn, vocab_size, tokenizer_info = resolve_tokenizer(args, logger)
+        if args.num_conv_blocks is not None:
+            if args.num_conv_blocks <= 0:
+                raise ValueError("num-conv-blocks must be positive.")
+            dilations = tuple(2**i for i in range(args.num_conv_blocks))
+        else:
+            dilations = tuple(int(part.strip()) for part in args.dilations.split(",") if part.strip())
+            if not dilations:
+                raise ValueError("dilations must contain at least one integer.")
+
         run = init_wandb_run(
             args,
             output_dir,
@@ -159,74 +183,36 @@ def main():
                 "mlp_dim": args.mlp_dim,
                 "mlp_hidden_dim": args.mlp_hidden_dim,
                 "dropout": args.dropout,
-                "dilations": args.dilations,
+                "dilations": list(dilations),
                 "encoder_type": args.encoder_type,
+                "tokenizer": tokenizer_info,
                 "num_workers": args.num_workers,
                 "seed": args.seed,
             },
         )
         logger.info("wandb_project=%s wandb_mode=%s", args.wandb_project, args.wandb_mode)
 
-        df, emb_array, merge_stats = load_airr_with_embeddings(
-            airr_path=args.airr_path,
-            embeddings_path=args.embeddings_path,
-            locus=args.locus,
-            clone_id_col=args.clone_id_col,
-            embedding_column=args.embedding_column,
-        )
-        data_stats = validate_dataframe(df, emb_array, max_len=args.max_len, clone_id_col=args.clone_id_col)
-        embedding_dim = int(emb_array.shape[1])
-
-        rng = np.random.default_rng(args.seed)
-        indices = rng.permutation(len(df))
-        train_end = int(len(df) * args.train_fraction)
-        val_end = train_end + int(len(df) * args.val_fraction)
-        train_idx = indices[:train_end]
-        val_idx = indices[train_end:val_end]
-        test_idx = indices[val_end:]
-
-        train_df = df.iloc[train_idx].reset_index(drop=True)
-        val_df = df.iloc[val_idx].reset_index(drop=True)
-        test_df = df.iloc[test_idx].reset_index(drop=True)
-        train_emb = emb_array[train_idx]
-        val_emb = emb_array[val_idx]
-        test_emb = emb_array[test_idx]
-        split_row_counts = {
-            "train": int(len(train_df)),
-            "val": int(len(val_df)),
-            "test": int(len(test_df)),
-        }
-
-        mean = train_emb.mean(axis=0).astype(np.float32)
-        std = train_emb.std(axis=0).astype(np.float32)
-        std = np.where(std < 1e-8, 1.0, std).astype(np.float32)
-
-        train_loader = DataLoader(
-            ForwardDataset(train_df, (train_emb - mean) / std, max_len=args.max_len),
-            batch_size=args.batch_size,
-            shuffle=True,
-            num_workers=args.num_workers,
+        prepared = prepare_cached_training_data(
+            args,
+            logger,
+            task="forward",
             collate_fn=collate_forward,
+            encode_fn=encode_fn,
         )
-        val_loader = DataLoader(
-            ForwardDataset(val_df, (val_emb - mean) / std, max_len=args.max_len),
-            batch_size=args.batch_size,
-            shuffle=False,
-            num_workers=args.num_workers,
-            collate_fn=collate_forward,
-        )
-        test_loader = DataLoader(
-            ForwardDataset(test_df, (test_emb - mean) / std, max_len=args.max_len),
-            batch_size=args.batch_size,
-            shuffle=False,
-            num_workers=args.num_workers,
-            collate_fn=collate_forward,
-        )
+        manifest = prepared["manifest"]
+        mean = prepared["mean"]
+        std = prepared["std"]
+        data_stats = prepared["data_stats"]
+        merge_stats = prepared["merge_stats"]
+        split_row_counts = prepared["split_row_counts"]
+        cache_dir = prepared["cache_dir"]
+        train_loader = prepared["train_loader"]
+        val_loader = prepared["val_loader"]
+        test_loader = prepared["test_loader"]
+        embedding_dim = int(merge_stats["embedding_dim"])
 
-        dilations = tuple(int(part.strip()) for part in args.dilations.split(",") if part.strip())
-        if not dilations:
-            raise ValueError("dilations must contain at least one integer.")
         model = ForwardModel(
+            vocab_size=vocab_size,
             embedding_dim=args.token_embedding_dim,
             hidden_dim=args.hidden_dim,
             mlp_dim=args.mlp_dim,
@@ -261,20 +247,13 @@ def main():
             num_trainable_parameters,
         )
 
-        save_json(
-            output_dir / "data_stats.json",
-            {
-                **data_stats,
-                **merge_stats,
-                "embedding_dim": embedding_dim,
-                "airr_path": args.airr_path,
-                "embeddings_path": args.embeddings_path,
-                "train_size": int(split_row_counts["train"]),
-                "val_size": int(split_row_counts["val"]),
-                "test_size": int(split_row_counts["test"]),
-                "standardizer": {"mean_path": "mean.npy", "std_path": "std.npy"},
-                "checkpoints": {"best": "best.pt", "last": "last.pt"},
-            },
+        save_training_metadata(
+            output_dir,
+            args,
+            {**data_stats, **tokenizer_info},
+            merge_stats,
+            split_row_counts,
+            manifest,
         )
         np.save(output_dir / "mean.npy", mean)
         np.save(output_dir / "std.npy", std)
@@ -325,7 +304,7 @@ def main():
                     "mlp_dim": args.mlp_dim,
                     "mlp_hidden_dim": args.mlp_hidden_dim,
                     "dropout": args.dropout,
-                    "dilations": args.dilations,
+                    "dilations": list(dilations),
                     "encoder_type": args.encoder_type,
                 },
             )
@@ -348,7 +327,7 @@ def main():
                         "mlp_dim": args.mlp_dim,
                         "mlp_hidden_dim": args.mlp_hidden_dim,
                         "dropout": args.dropout,
-                        "dilations": args.dilations,
+                        "dilations": list(dilations),
                         "encoder_type": args.encoder_type,
                     },
                 )
@@ -386,6 +365,8 @@ def main():
             test_metrics["cosine"],
         )
     finally:
+        if cache_dir is not None:
+            cleanup_batch_cache(cache_dir, logger=logger)
         if run is not None:
             run.finish()
 

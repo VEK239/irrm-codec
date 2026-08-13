@@ -32,6 +32,11 @@ def parse_args():
     parser.add_argument("--locus", default="alpha")
     parser.add_argument("--clone-id-col", default="clone_id")
     parser.add_argument("--embedding-column", default="tcremp_emb")
+    # TODO: add --tokenizer-type/--tokenizer-path/--vocab-size (see irrm_codec/tokenizer_cli.py,
+    # already wired into train_forward.py) and pass encode_fn/vocab_size through to
+    # prepare_cached_training_data()/InverseModel() below. Deferred: blocked on the
+    # length_logits bug noted further down, and this script still imports batch_cache.py,
+    # whose CachedBatchDataset doesn't accept a custom encode_fn at all.
     parser.add_argument("--max-len", type=int, default=40)
     parser.add_argument("--hidden-dim", type=int, default=512)
     parser.add_argument("--dropout", type=float, default=0.2)
@@ -57,6 +62,8 @@ def parse_args():
 
 
 def exact_match_rate(pred_tokens, target_tokens):
+    # TODO: decode() here is the char tokenizer. Once wordpiece support is wired in,
+    # swap for decode_wordpiece(ids, tokenizer) when --tokenizer-type=wordpiece.
     exact_matches = 0
     total = pred_tokens.size(0)
     for pred_row, target_row in zip(pred_tokens.tolist(), target_tokens.tolist()):
