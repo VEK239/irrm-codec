@@ -32,6 +32,7 @@ PAD_ID = AA_VOCAB["<PAD>"]
 BOS_ID = AA_VOCAB["<BOS>"]
 EOS_ID = AA_VOCAB["<EOS>"]
 UNK_ID = AA_VOCAB["<UNK>"]
+SPECIAL_IDS = {PAD_ID, BOS_ID, EOS_ID, UNK_ID}
 GAP_TOKEN = "-"
 VALID_AA = set("ACDEFGHIKLMNPQRSTVWY")
 
@@ -76,6 +77,25 @@ def encode(seq, max_len=40):
     return tokens[:max_len]
 
 
+def encode_raw(seq, max_len=40):
+    """Encode an unpadded amino-acid sequence for the Transformer codec."""
+    normalized = normalize_sequence(seq)
+    invalid = sorted({char for char in normalized if char not in VALID_AA})
+    if invalid:
+        raise ValueError(f"Sequence contains unsupported amino acids: {invalid}")
+    if len(normalized) > max_len:
+        raise ValueError(
+            f"Sequence length {len(normalized)} exceeds max_len={max_len}."
+        )
+    return [AA_VOCAB[char] for char in normalized]
+
+
+def encode_reconstruction_pair(seq, max_len=40):
+    """Return teacher-forcing input and target for autoregressive reconstruction."""
+    amino_acids = encode_raw(seq, max_len=max_len)
+    return [BOS_ID, *amino_acids], [*amino_acids, EOS_ID]
+
+
 def strip_gaps(seq):
     normalized = normalize_sequence(seq)
     return normalized.replace(GAP_TOKEN, "")
@@ -86,7 +106,7 @@ def decode(tokens, stop_at_eos=True, remove_gaps=False):
     for token in tokens:
         if token == EOS_ID and stop_at_eos:
             break
-        if token <= UNK_ID:
+        if token in SPECIAL_IDS:
             continue
         decoded.append(ID2AA[token])
     sequence = "".join(decoded)
