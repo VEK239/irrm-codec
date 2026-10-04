@@ -6,10 +6,14 @@ import numpy as np
 import torch
 from tqdm.auto import tqdm
 
-from irrm_codec.batch_cache import cleanup_batch_cache, prepare_cached_training_data, save_training_metadata
+# TODO: implement switching using flags
+# Switch back to using batch_cache.py once it is fixed
+# from irrm_codec.batch_cache import cleanup_batch_cache, prepare_cached_training_data, save_training_metadata
+from irrm_codec.batch_nocache import cleanup_batch_cache, prepare_cached_training_data, save_training_metadata
 from irrm_codec.datasets import collate_forward
 from irrm_codec.forward_model import ForwardModel
 from irrm_codec.losses import forward_loss, forward_metrics
+from irrm_codec.tokenizer_cli import add_tokenizer_args, resolve_tokenizer
 from irrm_codec.utils import (
     choose_device,
     move_to_device,
@@ -29,11 +33,18 @@ def parse_args():
     parser.add_argument("--locus", default="alpha")
     parser.add_argument("--clone-id-col", default="clone_id")
     parser.add_argument("--embedding-column", default="tcremp_emb")
+    add_tokenizer_args(parser)
     parser.add_argument("--max-len", type=int, default=40)
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
+    parser.add_argument("--dropout", type=float, default=0.2, help="Dropout used in ForwardModel's conv blocks and MLP head.")
+    parser.add_argument("--hidden-dim", type=int, default=192, help="Width of ForwardModel's conv blocks.")
+    parser.add_argument(
+        "--num-conv-blocks", type=int, default=4,
+        help="Depth: number of dilated conv blocks. Dilations are 2**0, 2**1, ..., 2**(n-1) (default 4 -> 1,2,4,8).",
+    )
     parser.add_argument("--train-fraction", type=float, default=0.8)
     parser.add_argument("--val-fraction", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=42)
@@ -124,11 +135,14 @@ def main():
             args.log_interval,
         )
 
+        encode_fn, vocab_size, tokenizer_info = resolve_tokenizer(args, logger)
+
         prepared = prepare_cached_training_data(
             args,
             logger,
             task="forward",
             collate_fn=collate_forward,
+            encode_fn=encode_fn,
         )
         manifest = prepared["manifest"]
         mean = prepared["mean"]
@@ -141,7 +155,14 @@ def main():
         val_loader = prepared["val_loader"]
         test_loader = prepared["test_loader"]
 
-        model = ForwardModel(output_dim=merge_stats["embedding_dim"], max_len=args.max_len).to(device)
+        model = ForwardModel(
+            vocab_size=vocab_size,
+            output_dim=merge_stats["embedding_dim"],
+            max_len=args.max_len,
+            dropout=args.dropout,
+            hidden_dim=args.hidden_dim,
+            dilations=tuple(2**i for i in range(args.num_conv_blocks)),
+        ).to(device)
         optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
         num_parameters = sum(param.numel() for param in model.parameters())
         num_trainable_parameters = sum(param.numel() for param in model.parameters() if param.requires_grad)
@@ -169,7 +190,7 @@ def main():
         save_training_metadata(
             output_dir,
             args,
-            data_stats,
+            {**data_stats, **tokenizer_info},
             merge_stats,
             split_row_counts,
             manifest,
