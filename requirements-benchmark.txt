@@ -1,4 +1,0 @@
-# Optional external representation encoders; install after requirements.txt.
-fair-esm
-transformers
-sceptr

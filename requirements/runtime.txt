@@ -1,0 +1,2 @@
+# Install the library with its supported runtime dependencies.
+-e .

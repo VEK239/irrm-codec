@@ -1,4 +1,4 @@
-from scripts.preflight_data_anchor_objectives import CONDITIONS
+from rtp_codec.experiments.preflight.preflight_data_anchor_objectives import CONDITIONS
 
 
 def test_full_nonempty_three_head_factorial_is_registered() -> None:

@@ -9,10 +9,10 @@ from tokenizers.models import WordPiece
 from tokenizers.pre_tokenizers import Whitespace
 from tokenizers.trainers import WordPieceTrainer
 
-from irrm_codec.multitask_data import resolve_encoder_tokenizer
-from irrm_codec.tokenization import AA_VOCAB
-from irrm_codec.wordpiece_tokenization import validate_wordpiece_tokenizer
-from scripts.prepare_wordpiece_sweep import SPECIAL_TOKENS, audit_tokenizer
+from rtp_codec.data.multitask import resolve_encoder_tokenizer
+from rtp_codec.tokenization.character import AA_VOCAB
+from rtp_codec.tokenization.wordpiece import validate_wordpiece_tokenizer
+from rtp_codec.experiments.tokenizers.prepare_wordpiece_sweep import SPECIAL_TOKENS, audit_tokenizer
 
 
 class WordPieceSweepTest(unittest.TestCase):

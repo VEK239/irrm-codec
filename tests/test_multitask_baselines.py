@@ -9,10 +9,10 @@ import numpy as np
 import pandas as pd
 import torch
 
-from irrm_codec.multitask_data import TargetStandardizer, resolve_encoder_tokenizer
-from irrm_codec.multitask_losses import IRRMCodecMultiTaskLoss, MultiTaskLossWeights
-from irrm_codec.multitask_transformer import IRRMCodecConfig, IRRMCodecTransformer
-from irrm_codec.tokenization import AA_VOCAB, EOS_ID, encode_raw, encode_reconstruction_pair
+from rtp_codec.data.multitask import TargetStandardizer, resolve_encoder_tokenizer
+from rtp_codec.training.objectives import RTPCodecMultiTaskLoss, MultiTaskLossWeights
+from rtp_codec.models.codec import RTPCodecConfig, RTPCodecTransformer
+from rtp_codec.tokenization.character import AA_VOCAB, EOS_ID, encode_raw, encode_reconstruction_pair
 
 
 class CharacterTokenizerTest(unittest.TestCase):
@@ -51,7 +51,7 @@ class LockedStandardizerTest(unittest.TestCase):
 
 class MatchedBaselineLossTest(unittest.TestCase):
     def test_tiny_locked_benchmark_trains_and_writes_terminal_artifacts(self):
-        from irrm_codec.train_multitask import main
+        from rtp_codec.training.multitask import main
 
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -120,10 +120,10 @@ class MatchedBaselineLossTest(unittest.TestCase):
     def test_phase1_configs_are_matched_except_condition_and_weights(self):
         root = Path(__file__).resolve().parents[1]
         r = json.loads(
-            (root / "experiments/trb/rq1-char-r-seed42/experiment_config.json").read_text()
+            (root / "configs/trb/rq1-char-r-seed42/experiment_config.json").read_text()
         )
         rtp = json.loads(
-            (root / "experiments/trb/rq1-char-rtp-seed42/experiment_config.json").read_text()
+            (root / "configs/trb/rq1-char-rtp-seed42/experiment_config.json").read_text()
         )
         for key in (
             "base_git_revision",
@@ -144,7 +144,7 @@ class MatchedBaselineLossTest(unittest.TestCase):
 
     def test_reconstruction_and_multitask_configs_share_architecture(self):
         torch.manual_seed(42)
-        config = IRRMCodecConfig(
+        config = RTPCodecConfig(
             input_vocab_size=len(AA_VOCAB),
             output_vocab_size=len(AA_VOCAB),
             max_sequence_len=8,
@@ -160,7 +160,7 @@ class MatchedBaselineLossTest(unittest.TestCase):
             pgen_head_dim=12,
             decoder_memory_tokens=2,
         )
-        model = IRRMCodecTransformer(config)
+        model = RTPCodecTransformer(config)
         tokens = torch.randint(5, len(AA_VOCAB), (3, 6))
         decoder_input = torch.randint(5, len(AA_VOCAB), (3, 7))
         target = torch.randint(5, len(AA_VOCAB), (3, 7))
@@ -175,10 +175,10 @@ class MatchedBaselineLossTest(unittest.TestCase):
             pgen_mean=torch.tensor(0.0),
             pgen_std=torch.tensor(1.0),
         )
-        r_losses = IRRMCodecMultiTaskLoss(
+        r_losses = RTPCodecMultiTaskLoss(
             MultiTaskLossWeights(tcremp=0.0, pgen=0.0, reconstruction=1.0)
         )(**common)
-        rtp_losses = IRRMCodecMultiTaskLoss(
+        rtp_losses = RTPCodecMultiTaskLoss(
             MultiTaskLossWeights(tcremp=1.0, pgen=1.0, reconstruction=1.0)
         )(**common)
         self.assertTrue(torch.isfinite(r_losses["loss"]))

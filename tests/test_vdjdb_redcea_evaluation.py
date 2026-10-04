@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from benchmark.evaluate_vdjdb_redcea_clonotypes import (
+from rtp_codec.benchmarks.downstream.evaluate_vdjdb_redcea_clonotypes import (
     build_candidate_gallery,
     candidate_distances,
     summarize_candidates,

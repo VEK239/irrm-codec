@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from benchmark.evaluate_latent_secondary import (
+from rtp_codec.benchmarks.analysis.evaluate_latent_secondary import (
     deterministic_substitutions,
     joint_relevance,
     make_candidate_gallery,

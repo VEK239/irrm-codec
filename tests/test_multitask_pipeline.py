@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
-from irrm_codec.tokenization import AA_VOCAB, EOS_ID, encode_raw, encode_reconstruction_pair
+from rtp_codec.tokenization.character import AA_VOCAB, EOS_ID, encode_raw, encode_reconstruction_pair
 
 
 HAS_TORCH = importlib.util.find_spec("torch") is not None
@@ -30,7 +30,7 @@ class TokenizationTest(unittest.TestCase):
 
 class ComparisonRunnerTest(unittest.TestCase):
     def test_existing_metrics_require_matching_request(self):
-        from scripts.run_multitask_tokenizer_comparison import run_one
+        from rtp_codec.experiments.comparison.run_multitask_tokenizer_comparison import run_one
 
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -59,11 +59,11 @@ class MultiTaskModelRuntimeTest(unittest.TestCase):
     def test_char_and_separate_vocab_forward_backward(self):
         import torch
 
-        from irrm_codec.multitask_losses import IRRMCodecMultiTaskLoss
-        from irrm_codec.multitask_transformer import IRRMCodecConfig, IRRMCodecTransformer
+        from rtp_codec.training.objectives import RTPCodecMultiTaskLoss
+        from rtp_codec.models.codec import RTPCodecConfig, RTPCodecTransformer
 
         for input_vocab_size, share in ((len(AA_VOCAB), True), (64, False)):
-            config = IRRMCodecConfig(
+            config = RTPCodecConfig(
                 input_vocab_size=input_vocab_size,
                 output_vocab_size=len(AA_VOCAB),
                 share_input_output_embeddings=share,
@@ -80,7 +80,7 @@ class MultiTaskModelRuntimeTest(unittest.TestCase):
                 pgen_head_dim=12,
                 decoder_memory_tokens=2,
             )
-            model = IRRMCodecTransformer(config)
+            model = RTPCodecTransformer(config)
             encoder_tokens = torch.randint(4, input_vocab_size, (3, 6))
             encoder_mask = torch.ones_like(encoder_tokens, dtype=torch.bool)
             decoder_input = torch.randint(2, len(AA_VOCAB), (3, 7))
@@ -91,7 +91,7 @@ class MultiTaskModelRuntimeTest(unittest.TestCase):
             self.assertEqual(outputs["pgen_standardized"].shape, (3,))
             self.assertEqual(outputs["reconstruction_logits"].shape, (3, 7, len(AA_VOCAB)))
 
-            criterion = IRRMCodecMultiTaskLoss()
+            criterion = RTPCodecMultiTaskLoss()
             losses = criterion(
                 outputs,
                 tcremp_target=torch.randn(3, 12),
@@ -106,7 +106,7 @@ class MultiTaskModelRuntimeTest(unittest.TestCase):
             self.assertTrue(torch.isfinite(losses["loss"]))
 
     def test_partial_gradient_accumulation_group_uses_actual_size(self):
-        from irrm_codec.train_multitask import _gradient_accumulation_group_size
+        from rtp_codec.training.multitask import _gradient_accumulation_group_size
 
         self.assertEqual(_gradient_accumulation_group_size(1, 3, 2), 2)
         self.assertEqual(_gradient_accumulation_group_size(2, 3, 2), 2)
@@ -120,8 +120,8 @@ class MultiTaskDataRuntimeTest(unittest.TestCase):
         import numpy as np
         import pandas as pd
 
-        from benchmark.prepare_splits import filter_embedding_rows, load_embeddings
-        from irrm_codec.utils import setup_logging
+        from rtp_codec.benchmarks.datasets.prepare_splits import filter_embedding_rows, load_embeddings
+        from rtp_codec.utils import setup_logging
 
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -152,8 +152,8 @@ class MultiTaskDataRuntimeTest(unittest.TestCase):
         import numpy as np
         import pandas as pd
 
-        from benchmark.prepare_splits import load_embeddings
-        from irrm_codec.utils import setup_logging
+        from rtp_codec.benchmarks.datasets.prepare_splits import load_embeddings
+        from rtp_codec.utils import setup_logging
 
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -183,7 +183,7 @@ class MultiTaskDataRuntimeTest(unittest.TestCase):
                 selected._mmap.close()
 
     def test_resume_falls_back_to_checkpoint_when_no_best_exists(self):
-        from irrm_codec.train_multitask import _resolve_best_checkpoint
+        from rtp_codec.training.multitask import _resolve_best_checkpoint
 
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -200,7 +200,7 @@ class MultiTaskDataRuntimeTest(unittest.TestCase):
         import numpy as np
         import pandas as pd
 
-        from irrm_codec.multitask_data import (
+        from rtp_codec.data.multitask import (
             MultiTaskBenchmarkDataset,
             build_multitask_dataloader,
             compute_target_standardizer,

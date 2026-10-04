@@ -1,0 +1,27 @@
+{
+  "description": "DATA-ANCHOR factorial RTP; supply the locked data and tokenizer bundle paths.",
+  "arguments": {
+    "tokenizer_type": "data_anchor",
+    "latent_dim": 128,
+    "d_model": 320,
+    "nhead": 8,
+    "encoder_layers": 4,
+    "decoder_layers": 4,
+    "ff_dim": 1280,
+    "dropout": 0.1,
+    "tcremp_head_dim": 1024,
+    "pgen_head_dim": 256,
+    "batch_size": 64,
+    "epochs": 40,
+    "lr": 0.0003,
+    "weight_decay": 0.0001,
+    "early_stopping_patience": 0,
+    "seed": 42,
+    "pgen_target": "log10_pgen_1mm",
+    "train_subset": "all",
+    "output_dir": "artifacts/paper/rtp-seed42",
+    "reconstruction_loss_weight": 1,
+    "tcremp_loss_weight": 1,
+    "pgen_loss_weight": 1
+  }
+}

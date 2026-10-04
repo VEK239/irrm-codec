@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from benchmark.evaluate_latent_sufficiency import (
+from rtp_codec.benchmarks.analysis.evaluate_latent_sufficiency import (
     EOS_CLASS,
     aggregate_losses,
     composition_features,

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from benchmark.evaluate_single_aa_challenge import (
+from rtp_codec.benchmarks.analysis.evaluate_single_aa_challenge import (
     bootstrap_or_disabled,
     evaluate_representation,
     identity_features,

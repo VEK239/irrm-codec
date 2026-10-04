@@ -40,23 +40,26 @@ Thumbs.db
 *.log
 
 # Project artifacts
-artifacts/
+/artifacts/
 
 # Local data
-data/
+/data/
 
 # Reports
-reports/
+/reports/
 
 # Generated experiments and local publication scratch
 .publish-*/
 .tmp*/
-tmp/
-output/
-manuscript/
+/tmp/
+/output/
+/manuscript/
 *.pt
 *.pth
 *.npy
 *.npz
 experiments/**/wandb/
 experiments/**/predictions/
+
+# Generated training runs (versioned presets live in configs/)
+/experiments/

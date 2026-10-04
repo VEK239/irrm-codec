@@ -7,8 +7,8 @@ from tokenizers import Tokenizer
 from tokenizers.decoders import WordPiece as WordPieceDecoder
 from tokenizers.models import WordPiece
 
-from irrm_codec.anchored_tokenization import AnchoredTokenizer, SPECIAL_TOKENS
-from irrm_codec.multitask_data import resolve_encoder_tokenizer
+from rtp_codec.tokenization.anchored import AnchoredTokenizer, SPECIAL_TOKENS
+from rtp_codec.data.multitask import resolve_encoder_tokenizer
 
 
 class AnchoredTokenizerTest(unittest.TestCase):
