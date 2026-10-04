@@ -1,0 +1,25 @@
+{
+  "inputs": {
+    "/home/evlasova/irrm-codec/experiments/trb/external-global-author-v1/vdjdb/evaluation-1427581/external_retrieval_summary.tsv": "58ec7b647ea881689495770f1a2bbe94b90184bd8e67f143aca96ada4909393a",
+    "/home/evlasova/irrm-codec/experiments/trb/external-model-benchmark/results/pgen/pgen_summary.csv": "1be5e255e91c0b55f2c7429aeb48b75ce332af524fee17779f43070a88b8a362",
+    "/home/evlasova/irrm-codec/experiments/trb/external-model-benchmark/results/reconstruction/reconstruction_summary.csv": "5f15ae270e153ef179cddb8651d8e7f75d5ceb3b77aa8c66c48c66fc5d0739d4",
+    "/home/evlasova/irrm-codec/experiments/trb/vdjdb-redcea-clonotypes/evaluation-1426728/metrics.json": "8a460d8f870f6dd5733c6cbf41c7a1614ba1e3729235169da739ae9a20492d56"
+  },
+  "limitations": [
+    "SCEPTR-default is annotation-aware and is not equivalent to sequence-only methods.",
+    "SCEPTR-default was not run on full REDCEA because unsupported V/J rows would require method-specific filtering.",
+    "REDCEA membership is sequence/TCRemP-cluster-conditioned, so retrieval is motif-conditioned.",
+    "Aligned one-hot is retained as an internal high-dimensional sequence control but omitted from the manuscript-facing comparison.",
+    "Probe mean/std reflects probe seeds, not pretrained encoder training-seed uncertainty."
+  ],
+  "outputs": {
+    "final_author_global_comparison.md": "b1d4019d103b5d545f3bc46f99212dadd99f73482dc9c8ec6df456d3c0382f97",
+    "final_author_global_comparison.tsv": "d15807f7d1401f39b10b3aa3a4364d70d9db9c87c0fe238b92c6ee2f0e9cf3b3"
+  },
+  "protocol": {
+    "pgen": "native author-global vector plus identical MLP; three probe seeds",
+    "reconstruction": "train-only PCA64 plus identical learned decoder; three probe seeds",
+    "vdjdb": "native author-global vector on the fixed REDCEA gallery; macro over 87 epitopes"
+  },
+  "status": "complete"
+}

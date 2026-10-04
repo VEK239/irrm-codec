@@ -1,6 +1,6 @@
 # Author result archive
 
-These tables were recovered from the local manuscript/results directory during
+These tables were recovered from the local manuscript/tables directory during
 publication integration. They record the original author experiments, including
 R/T/P factorial, tokenization/architecture comparisons, external models, latent
 sufficiency, reconstruction errors, and downstream evaluation. They were not
