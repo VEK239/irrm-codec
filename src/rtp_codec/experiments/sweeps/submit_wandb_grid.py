@@ -161,14 +161,14 @@ def main():
             args,
             "forward",
             FORWARD_GRID,
-            scripts_root / "scripts" / "slurm" / "training" / "train_forward_wandb_grid.sbatch",
+            scripts_root / "research" / "scripts" / "slurm" / "training" / "train_forward_wandb_grid.sbatch",
         )
     if args.model in {"inverse", "both"}:
         total += submit_model(
             args,
             "inverse",
             INVERSE_GRID,
-            scripts_root / "scripts" / "slurm" / "training" / "train_inverse_wandb_grid.sbatch",
+            scripts_root / "research" / "scripts" / "slurm" / "training" / "train_inverse_wandb_grid.sbatch",
         )
 
     print(f"submitted_jobs={total}")

@@ -158,7 +158,7 @@ property IRRM-CODEC adds on top. The reconstruction benchmark therefore bounds o
 about the representation; the Pgen benchmark tests the project's speed argument, where
 the comparison is against OLGA rather than against other encoders.
 
-Reproduce with `scripts/slurm/legacy/reconstruction_array.sbatch`, then
+Reproduce with `research/scripts/slurm/legacy/reconstruction_array.sbatch`, then
 `python -m rtp_codec.benchmarks.reconstruction.collect_reconstruction`.
 
 ## 3. Pgen prediction
@@ -183,7 +183,7 @@ The whole sweep was then run **twice**, under two learning-rate configurations: 
 patience widened from 8 to 12 so the schedule reaches its tail). The second configuration
 was not a tuning pass but a robustness check, and it changed the headline conclusion. All
 tables below report the cosine runs, which converge better and vary less; the constant-rate
-numbers are kept in `results/pgen_constlr/` for comparison.
+numbers are kept in `research/results/pgen_constlr/` for comparison.
 
 ### Results on the full training split
 
@@ -214,7 +214,7 @@ Mean ± standard deviation over seeds, on the held-out test split.
 The ordering is identical on both targets and at every training size: the two IRRM arms
 lead, TCR-BERT is the best frozen representation, then SCEPTR and ESM-2, with Ridge last.
 The gaps are large — IRRM halves the error of SCEPTR, ESM-2 and Ridge — and far exceed
-seed spread. Per-size tables are in `results/legacy/pgen/pgen_summary.md`.
+seed spread. Per-size tables are in `research/results/legacy/pgen/pgen_summary.md`.
 
 For reference, the committed pgen notebook reports RMSE 0.5914, R² 0.9437 and Pearson
 0.9874 on `log10_pgen_1mm`. The best arm here reaches RMSE 0.2181, R² 0.9813 and Pearson
@@ -349,8 +349,8 @@ demonstrated.
 **Loses: throughput against a trivial baseline.** TF-IDF + Ridge is 22× faster on CPU. If
 an application needs coarse Pgen estimates at maximum rate, k-mers remain the right tool.
 
-Reproduce with `scripts/slurm/legacy/pgen_array.sbatch` and
-`scripts/slurm/legacy/pgen_seeds_array.sbatch`, then `python -m rtp_codec.benchmarks.pgen.collect_pgen` and
+Reproduce with `research/scripts/slurm/legacy/pgen_array.sbatch` and
+`research/scripts/slurm/legacy/pgen_seeds_array.sbatch`, then `python -m rtp_codec.benchmarks.pgen.collect_pgen` and
 `python -m rtp_codec.benchmarks.runtime.benchmark_speed`.
 
 ## Limitations

@@ -23,9 +23,9 @@ python -m pip install -e .
 | `irrm_codec.anchored_tokenization` | `rtp_codec.tokenization.anchored` |
 | `benchmark.<module>` | Task-specific module under `rtp_codec.benchmarks` |
 | `scripts.<Python module>` | Task-specific module under `rtp_codec.experiments` |
-| `experiments/trb/<recorded configuration>` | `configs/trb/<recorded configuration>` |
-| `results/author` | `results/paper` |
-| Root requirements files | `pyproject.toml` and `requirements/` |
+| `experiments/trb/<recorded configuration>` | `research/configs/trb/<recorded configuration>` |
+| `research/results/author` | `research/results/paper` |
+| Root requirements files | `pyproject.toml` and `research/environments/` |
 
 Python modules are launched with `python -m ...` after installation. The old `irrm_codec` Python namespace is no longer exposed. Existing shell launchers have been updated; update imports in your own notebooks or external scripts.
 

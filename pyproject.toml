@@ -34,6 +34,7 @@ Issues = "https://github.com/VEK239/rtp-codec/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["rtp_codec*"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["src/tests"]

@@ -30,7 +30,7 @@ ARMS = ("irrm", "tfidf_ridge", "sceptr_mlp", "tcr_bert_mlp", "esm2_8m_mlp")
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--dataset-dir", default="data/benchmark/trb")
-    p.add_argument("--output-dir", default="results/pgen")
+    p.add_argument("--output-dir", default="research/results/pgen")
     p.add_argument("--device", default="auto", choices=("auto", "cpu", "cuda"))
     p.add_argument("--n-sequences", type=int, default=5000)
     p.add_argument("--batch-size", type=int, default=256)

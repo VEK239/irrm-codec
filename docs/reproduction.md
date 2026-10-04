@@ -33,7 +33,7 @@ The routine fits edge motifs on the training split, filters the independent corp
 For one condition:
 
 ```bash
-rtp-codec train --config configs/paper/rtp.json \
+rtp-codec train --config research/configs/paper/rtp.json \
   --data-dir data/benchmark/trb \
   --tokenizer-path data/tokenizers/data_anchor/anchored_tokenizer.json \
   --device cuda
@@ -43,7 +43,7 @@ For all seven conditions (Bash):
 
 ```bash
 for arm in r t p rt rp tp rtp; do
-  rtp-codec train --config "configs/paper/$arm.json"   \
+  rtp-codec train --config "research/configs/paper/$arm.json"   \
     --data-dir data/benchmark/trb   \
     --tokenizer-path data/tokenizers/data_anchor/anchored_tokenizer.json   \
     --device cuda
@@ -74,7 +74,7 @@ python -m rtp_codec.benchmarks.representations.preflight_author_global_embedding
 python -m rtp_codec.benchmarks.runtime.benchmark_rtp_runtime --help
 ```
 
-The [protocol documents](protocols/) and grouped [Slurm templates](../scripts/slurm/) specify the respective asset layouts and experiment arguments. Use the final consolidated [frozen comparison](../results/paper/external_author_global_comparison.tsv) for the article's main ESM2-35M and CDR3-only SCEPTR comparison; earlier 8M and annotation-aware controls answer different questions.
+The [protocol documents](protocols) and grouped [Slurm templates](../research/scripts/slurm) specify the respective asset layouts and experiment arguments. Use the final consolidated [frozen comparison](../research/results/paper/external_author_global_comparison.tsv) for the article's main ESM2-35M and CDR3-only SCEPTR comparison; earlier 8M and annotation-aware controls answer different questions.
 
 ## 5. Validate before large runs
 

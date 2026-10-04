@@ -180,7 +180,7 @@ def main() -> None:
             "sha256": sha256(args.cluster_members),
             "git_commit": args.source_git_commit,
             "git_blob": args.source_git_blob,
-            "expected_repository_path": "results/redcea/cluster_members_TRB.txt",
+            "expected_repository_path": "research/results/redcea/cluster_members_TRB.txt",
         },
         "cohort": {
             "path": str(cohort_path), "sha256": sha256(cohort_path),

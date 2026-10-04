@@ -10,6 +10,6 @@ def repository_root() -> Path:
             raise FileNotFoundError(f"RTP_CODEC_ROOT is not a repository checkout: {root}")
         return root
     for root in Path(__file__).resolve().parents:
-        if (root / "pyproject.toml").is_file() and (root / "scripts").is_dir():
+        if (root / "pyproject.toml").is_file() and (root / "research" / "scripts").is_dir():
             return root
     raise FileNotFoundError("This launcher requires a source checkout; set RTP_CODEC_ROOT.")

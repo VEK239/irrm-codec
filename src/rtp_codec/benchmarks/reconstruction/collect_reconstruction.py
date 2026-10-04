@@ -29,7 +29,7 @@ def parse_args():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--runs-dir", default="artifacts/benchmark/reconstruction")
     p.add_argument("--bottleneck-dir", default="data/benchmark/trb/bottleneck")
-    p.add_argument("--output-dir", default="results/reconstruction")
+    p.add_argument("--output-dir", default="research/results/reconstruction")
     p.add_argument("--bottleneck-dim", type=int, default=64)
     return p.parse_args()
 
