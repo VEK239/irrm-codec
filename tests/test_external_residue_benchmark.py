@@ -2,13 +2,13 @@ import numpy as np
 import pytest
 import torch
 
-from benchmark.external_residue_models import (
+from rtp_codec.benchmarks.representations.external_residue_models import (
     FrozenResidueDecoder,
     FrozenResiduePgenHead,
     ResidueArrayDataset,
 )
-from benchmark.train_external_residue_decoder import levenshtein_distance
-from benchmark.fit_external_residue_pca256 import fit_randomized_pca
+from rtp_codec.benchmarks.reconstruction.train_external_residue_decoder import levenshtein_distance
+from rtp_codec.benchmarks.representations.fit_external_residue_pca256 import fit_randomized_pca
 
 
 @pytest.mark.parametrize(

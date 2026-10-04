@@ -1,6 +1,6 @@
 import unittest
 
-from benchmark.prepare_vdjdb_ylq import build_pairs
+from rtp_codec.benchmarks.datasets.prepare_vdjdb_ylq import build_pairs
 
 
 def record(cdr3: str, donor: str, v_call: str = "TRBV1", j_call: str = "TRBJ1") -> dict:

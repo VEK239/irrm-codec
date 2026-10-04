@@ -1,6 +1,6 @@
 import pandas as pd
 
-from benchmark.prepare_vdjdb_redcea_clonotypes import prepare_cohort
+from rtp_codec.benchmarks.datasets.prepare_vdjdb_redcea_clonotypes import prepare_cohort
 
 
 def member(sequence: str, label: str, cid: str, species: str = "HomoSapiens") -> dict:

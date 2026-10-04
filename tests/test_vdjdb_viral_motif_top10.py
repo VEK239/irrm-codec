@@ -3,12 +3,12 @@ from pathlib import Path
 
 import pandas as pd
 
-from benchmark.evaluate_vdjdb_viral_motif_top10 import (
+from rtp_codec.benchmarks.downstream.evaluate_vdjdb_viral_motif_top10 import (
     EXPECTED_WEIGHTS,
     MODEL_NAMES,
     summarize_distribution,
 )
-from benchmark.prepare_vdjdb_viral_motif_top10 import (
+from rtp_codec.benchmarks.datasets.prepare_vdjdb_viral_motif_top10 import (
     choose_top10,
     rank_epitopes,
     read_species_list,

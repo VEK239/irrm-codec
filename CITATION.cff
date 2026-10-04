@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "Please cite the RTP-CODEC manuscript and this repository when using the code."
+title: "RTP-CODEC: Learning Compact TCR Representations from Multiple Biological Objectives"
+type: software
+version: 0.1.0
+url: "https://github.com/VEK239/rtp-codec"
+repository-code: "https://github.com/VEK239/rtp-codec"
+license: GPL-3.0-only
+authors:
+  - family-names: Vlasova
+    given-names: Elizaveta
+  - family-names: Grigorev
+    given-names: Petr
+  - family-names: Demidova
+    given-names: Mariia
+  - family-names: Muravyov
+    given-names: Sergey
+  - family-names: Shugay
+    given-names: Mikhail

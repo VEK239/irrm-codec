@@ -2,8 +2,8 @@ import json
 import unittest
 from pathlib import Path
 
-from benchmark.evaluate_vdjdb_frozen import parse_models
-from benchmark.prepare_vdjdb_epitope_cohort import normalize_vdjdb_row
+from rtp_codec.benchmarks.downstream.evaluate_vdjdb_frozen import parse_models
+from rtp_codec.benchmarks.datasets.prepare_vdjdb_epitope_cohort import normalize_vdjdb_row
 
 
 def row(**changes):

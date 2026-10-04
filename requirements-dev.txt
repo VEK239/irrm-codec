@@ -1,2 +1,0 @@
--r requirements_no_mirpy.txt
-pytest>=8,<9

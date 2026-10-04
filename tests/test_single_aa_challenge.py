@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from benchmark.prepare_single_aa_challenge import choose_parents, generate_mutants, parent_folds
-from benchmark.validate_single_aa_targets import align_targets
+from rtp_codec.benchmarks.datasets.prepare_single_aa_challenge import choose_parents, generate_mutants, parent_folds
+from rtp_codec.benchmarks.datasets.validate_single_aa_targets import align_targets
 
 
 def test_mutants_are_unique_one_substitution_and_parent_split_is_disjoint():

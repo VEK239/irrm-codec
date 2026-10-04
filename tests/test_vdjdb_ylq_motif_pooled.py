@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from benchmark.prepare_vdjdb_ylq_motif_pooled import (
+from rtp_codec.benchmarks.datasets.prepare_vdjdb_ylq_motif_pooled import (
     build_pairs,
     read_joined_records,
     read_official_members,

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from benchmark.evaluate_vdjdb_epitope_prediction import (
+from rtp_codec.benchmarks.downstream.evaluate_vdjdb_epitope_prediction import (
     audit_dataset,
     make_splits,
     redcea_component_groups,

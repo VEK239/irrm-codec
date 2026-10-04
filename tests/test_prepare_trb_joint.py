@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from benchmark.prepare_trb_joint import (
+from rtp_codec.benchmarks.datasets.prepare_trb_joint import (
     add_identity_columns,
     make_splits,
     prepare_identity_table,

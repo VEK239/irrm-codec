@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from benchmark.preflight_external_model_benchmark import read_manifest_rows, validate_splits
-from benchmark.prepare_external_model_cohort import nested_training_subsets
+from rtp_codec.benchmarks.representations.preflight_external_model_benchmark import read_manifest_rows, validate_splits
+from rtp_codec.benchmarks.datasets.prepare_external_model_cohort import nested_training_subsets
 
 
 def _write_manifest(root: Path, name: str, rows: list[int]) -> None:

@@ -1,7 +1,0 @@
-# Exact antigen.species values in the pinned VDJdb 2025-07-30 snapshot that
-# denote viral antigens after the preregistered A*02:01/B2M/MHCI/TRB filters.
-# Matching is exact and case-sensitive; HomoSapiens is intentionally excluded.
-InfluenzaA
-EBV
-SARS-CoV-2
-HIV-1

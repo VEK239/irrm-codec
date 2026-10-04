@@ -7,7 +7,7 @@ from tokenizers import Tokenizer
 from tokenizers.decoders import WordPiece as WordPieceDecoder
 from tokenizers.models import WordPiece
 
-from irrm_codec.wordpiece_tokenization import (
+from rtp_codec.tokenization.wordpiece import (
     decode_wordpiece, encode_wordpiece_unpadded, filter_vocab_by_max_token_length,
     load_wordpiece_tokenizer,
 )
@@ -39,7 +39,7 @@ def test_author_and_student_vocabularies_preserve_ids_and_decode(specials):
 
 def test_sequence_keyed_pgen_cache_survives_row_filtering(tmp_path):
     import pandas as pd
-    from benchmark.prepare_splits import _pgen_lookup
+    from rtp_codec.benchmarks.datasets.prepare_splits import _pgen_lookup
     path = tmp_path / "pgen.tsv"
     pd.DataFrame({
         "junction_aa": ["CASSF", "CASRF", "CATGF"],

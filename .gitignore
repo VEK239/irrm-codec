@@ -60,3 +60,6 @@ manuscript/
 *.npz
 experiments/**/wandb/
 experiments/**/predictions/
+
+# Generated training runs (versioned presets live in configs/)
+experiments/

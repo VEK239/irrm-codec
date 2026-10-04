@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 torch = pytest.importorskip("torch")
 
-from benchmark.cache_external_model_embeddings import ENCODERS, _mean_pool, encode_sceptr
+from rtp_codec.benchmarks.representations.cache_external_model_embeddings import ENCODERS, _mean_pool, encode_sceptr
 
 
 class _Log:
