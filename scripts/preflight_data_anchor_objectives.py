@@ -26,8 +26,11 @@ from irrm_codec.multitask_transformer import IRRMCodecConfig, IRRMCodecTransform
 
 CONDITIONS = {
     "r": {"reconstruction": 1.0, "tcremp": 0.0, "pgen": 0.0},
+    "t": {"reconstruction": 0.0, "tcremp": 1.0, "pgen": 0.0},
     "p": {"reconstruction": 0.0, "tcremp": 0.0, "pgen": 1.0},
+    "rt": {"reconstruction": 1.0, "tcremp": 1.0, "pgen": 0.0},
     "rp": {"reconstruction": 1.0, "tcremp": 0.0, "pgen": 1.0},
+    "tp": {"reconstruction": 0.0, "tcremp": 1.0, "pgen": 1.0},
 }
 
 
@@ -185,7 +188,8 @@ def main() -> None:
     report = {
         "status": "ready",
         "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
-        "required_conditions": ["r", "p", "rp"],
+        "required_conditions": ["r", "t", "p", "rt", "rp", "tp"],
+        "newly_required_conditions": ["t", "rt", "tp"],
         "fixed_reference": {
             "condition": "rtp",
             "job_id": "1426222",
@@ -211,7 +215,10 @@ def main() -> None:
         },
         "splits": {split: len(value) for split, value in indices.items()},
         "conditions": reports,
-        "note": "P-only retains the identical decoder and TCRemP head; their inactive metrics are non-interpretable.",
+        "note": (
+            "Every condition retains the identical decoder and all auxiliary heads. Metrics from "
+            "heads with zero loss weight are non-interpretable."
+        ),
     }
     stable_json(args.output_root / "PREFLIGHT.json", report)
     print(json.dumps(report, indent=2, sort_keys=True))

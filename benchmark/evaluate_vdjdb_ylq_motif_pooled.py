@@ -373,7 +373,10 @@ def main() -> None:
         "models": model_report,
         "extraction": extraction,
         "artifact_sha256": hashes,
-        "selection_statement": "All four prespecified frozen checkpoints reported; no YLQ-based selection.",
+        "selection_statement": (
+            "All seven nonempty matched R/T/P factorial checkpoints reported; "
+            "no YLQ-based selection."
+        ),
         "circularity_caveat": preflight["circularity_caveat"],
         "claim_scope": "within-VDJdb motif/epitope organization; not cross-donor or independent motif evidence",
         "exploratory_n40_protocol": preflight["exploratory_n40_protocol"],

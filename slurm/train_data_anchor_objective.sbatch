@@ -10,18 +10,18 @@
 #SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.err
 
 set -euo pipefail
-CONDITION="${1:?Condition r, p, or rp is required}"
+CONDITION="${1:?Condition t, rt, or tp is required}"
 case "$CONDITION" in
-  r)  RECON=1; TCREMP=0; PGEN=0 ;;
-  p)  RECON=0; TCREMP=0; PGEN=1 ;;
-  rp) RECON=1; TCREMP=0; PGEN=1 ;;
+  t)  RECON=0; TCREMP=1; PGEN=0 ;;
+  rt) RECON=1; TCREMP=1; PGEN=0 ;;
+  tp) RECON=0; TCREMP=1; PGEN=1 ;;
   *) echo "Refusing unregistered DATA-ANCHOR objective condition" >&2; exit 2 ;;
 esac
 
 ROOT_DIR="/home/evlasova/irrm-codec"
 DATA_DIR="$ROOT_DIR/data/benchmark/trb"
 TOKENIZER="$ROOT_DIR/experiments/trb/tokenizers/anchored-seed42/data_anchor/anchored_tokenizer.json"
-MATRIX_ROOT="$ROOT_DIR/experiments/trb/data-anchor-objective-matrix"
+MATRIX_ROOT="$ROOT_DIR/experiments/trb/data-anchor-full-factorial-gate"
 PREFLIGHT="$MATRIX_ROOT/PREFLIGHT.json"
 CONDITION_CONFIG="$MATRIX_ROOT/configs/$CONDITION.json"
 OUTPUT_DIR="$ROOT_DIR/experiments/trb/data-anchor-$CONDITION-seed42"

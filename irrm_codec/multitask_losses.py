@@ -17,27 +17,52 @@ class MultiTaskLossWeights:
 
 
 class IRRMCodecMultiTaskLoss(nn.Module):
-    """Combine normalized losses without mixing incompatible target scales.
-
-    The TCRemP and pgen heads predict standardized train-target values. TCRemP
-    cosine loss is nevertheless computed after de-standardization, so the model
-    is optimized and evaluated in the original embedding geometry as well.
-    """
+    """Combine normalized losses without mixing incompatible target scales."""
 
     def __init__(
         self,
         weights: MultiTaskLossWeights | None = None,
         tcremp_mse_fraction: float = 0.7,
+        tcremp_centered_cosine_weight: float = 0.0,
+        tcremp_pairwise_log_distance_weight: float = 0.0,
         pgen_huber_delta: float = 0.5,
         label_smoothing: float = 0.0,
     ):
         super().__init__()
         if not 0.0 <= tcremp_mse_fraction <= 1.0:
             raise ValueError("tcremp_mse_fraction must lie in [0, 1].")
+        for name, value in (
+            ("tcremp_centered_cosine_weight", tcremp_centered_cosine_weight),
+            ("tcremp_pairwise_log_distance_weight", tcremp_pairwise_log_distance_weight),
+        ):
+            if not 0.0 <= value <= 1.0:
+                raise ValueError(f"{name} must lie in [0, 1].")
+        if tcremp_centered_cosine_weight + tcremp_pairwise_log_distance_weight > 1.0:
+            raise ValueError("TCRemP geometry weights must sum to at most 1.")
         self.weights = weights or MultiTaskLossWeights()
         self.tcremp_mse_fraction = tcremp_mse_fraction
+        self.tcremp_centered_cosine_weight = tcremp_centered_cosine_weight
+        self.tcremp_pairwise_log_distance_weight = tcremp_pairwise_log_distance_weight
         self.pgen_huber_delta = pgen_huber_delta
         self.label_smoothing = label_smoothing
+
+    @staticmethod
+    def _pairwise_log_cosine_distance(
+        prediction: torch.Tensor,
+        target: torch.Tensor,
+    ) -> torch.Tensor:
+        """Match off-diagonal raw-space cosine distances on a log scale."""
+        if prediction.size(0) < 2:
+            return prediction.new_zeros(())
+        pred_unit = F.normalize(prediction.float(), dim=-1)
+        target_unit = F.normalize(target.float(), dim=-1)
+        pred_distance = (1.0 - pred_unit @ pred_unit.T).clamp_min(1e-7)
+        target_distance = (1.0 - target_unit @ target_unit.T).clamp_min(1e-7)
+        mask = ~torch.eye(prediction.size(0), dtype=torch.bool, device=prediction.device)
+        return F.smooth_l1_loss(
+            pred_distance[mask].log(),
+            target_distance[mask].log(),
+        )
 
     def forward(
         self,
@@ -66,9 +91,33 @@ class IRRMCodecMultiTaskLoss(nn.Module):
             tcremp_target,
             dim=-1,
         ).mean()
-        tcremp_loss = (
+        tcremp_legacy = (
             self.tcremp_mse_fraction * tcremp_mse
             + (1.0 - self.tcremp_mse_fraction) * tcremp_cosine
+        )
+        if self.tcremp_centered_cosine_weight > 0:
+            tcremp_centered_cosine = 1.0 - F.cosine_similarity(
+                pred_tcremp_std.float(),
+                target_tcremp_std.float(),
+                dim=-1,
+            ).mean()
+        else:
+            tcremp_centered_cosine = pred_tcremp_std.new_zeros(())
+        if self.tcremp_pairwise_log_distance_weight > 0:
+            tcremp_pairwise = self._pairwise_log_cosine_distance(
+                pred_tcremp_raw,
+                tcremp_target,
+            )
+        else:
+            tcremp_pairwise = pred_tcremp_std.new_zeros(())
+        geometry_weight = (
+            self.tcremp_centered_cosine_weight
+            + self.tcremp_pairwise_log_distance_weight
+        )
+        tcremp_loss = (
+            (1.0 - geometry_weight) * tcremp_legacy
+            + self.tcremp_centered_cosine_weight * tcremp_centered_cosine
+            + self.tcremp_pairwise_log_distance_weight * tcremp_pairwise
         )
 
         safe_pgen_std = pgen_std.clamp_min(1e-8)
@@ -78,14 +127,12 @@ class IRRMCodecMultiTaskLoss(nn.Module):
             target_pgen_std,
             delta=self.pgen_huber_delta,
         )
-
         reconstruction_loss = F.cross_entropy(
             reconstruction_logits.reshape(-1, reconstruction_logits.size(-1)),
             reconstruction_target.reshape(-1),
             ignore_index=PAD_ID,
             label_smoothing=self.label_smoothing,
         )
-
         total = (
             self.weights.tcremp * tcremp_loss
             + self.weights.pgen * pgen_loss
@@ -96,6 +143,8 @@ class IRRMCodecMultiTaskLoss(nn.Module):
             "tcremp_loss": tcremp_loss,
             "tcremp_mse_standardized": tcremp_mse,
             "tcremp_cosine_loss_raw": tcremp_cosine,
+            "tcremp_centered_cosine_loss": tcremp_centered_cosine,
+            "tcremp_pairwise_log_distance_loss": tcremp_pairwise,
             "pgen_loss": pgen_loss,
             "reconstruction_loss": reconstruction_loss,
         }

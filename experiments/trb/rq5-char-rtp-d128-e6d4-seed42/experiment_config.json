@@ -1,0 +1,59 @@
+{
+  "experiment_id": "rq5-char-rtp-d128-e6d4-seed42",
+  "research_question": "RQ5 Stage 2 encoder-depth sweep at validation-selected latent_dim=128",
+  "condition": "char_R_plus_T_plus_P_latent_d128_encoder6_decoder4",
+  "selection_basis": "latent_dim=128 selected solely by minimum Stage-1 validation loss",
+  "baseline_job_id": "1425949",
+  "data_dir": "/home/evlasova/irrm-codec/data/benchmark/trb",
+  "output_dir": "/home/evlasova/irrm-codec/experiments/trb/rq5-char-rtp-d128-e6d4-seed42",
+  "tokenizer": "char",
+  "seed": 42,
+  "model": {
+    "input_vocab_size": 25,
+    "output_vocab_size": 25,
+    "share_input_output_embeddings": true,
+    "max_sequence_len": 40,
+    "d_model": 320,
+    "latent_dim": 128,
+    "nhead": 8,
+    "encoder_layers": 6,
+    "decoder_layers": 4,
+    "ff_dim": 1280,
+    "dropout": 0.1,
+    "tcremp_dim": 9000,
+    "tcremp_head_dim": 1024,
+    "pgen_head_dim": 256,
+    "decoder_memory_tokens": 4,
+    "parameter_count": 23608873
+  },
+  "loss": {
+    "reconstruction": 1,
+    "tcremp": 1,
+    "pgen": 1,
+    "tcremp_mse_fraction": 0.7,
+    "pgen_huber_delta": 0.5,
+    "label_smoothing": 0
+  },
+  "training": {
+    "batch_size": 64,
+    "epochs": 40,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "gradient_accumulation_steps": 1,
+    "max_grad_norm": 1,
+    "early_stopping_patience": 0,
+    "scheduler_factor": 0.5,
+    "scheduler_patience": 2,
+    "scheduler_min_lr": 0.000001,
+    "amp": true
+  },
+  "slurm": {
+    "partition": "medium",
+    "gpus": 1,
+    "cpus": 8,
+    "memory": "48G",
+    "time": "12:00:00",
+    "status": "completed",
+    "job_id": "1425956"
+  }
+}

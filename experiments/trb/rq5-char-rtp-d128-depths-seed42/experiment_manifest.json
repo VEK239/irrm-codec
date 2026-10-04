@@ -1,0 +1,52 @@
+{
+  "phase": "RQ5 Stage 2 encoder-depth sweep",
+  "tokenizer": "char",
+  "supervision": "R+T+P",
+  "latent_dim": 128,
+  "decoder_layers": 4,
+  "seed": 42,
+  "epochs": 40,
+  "gpu_concurrency_cap": 2,
+  "submission_status": "completed",
+  "submission_rule": "Only encoder depths 2 and 6 after successful CPU preflight and explicit continuation.",
+  "selection": {
+    "criterion": "minimum best-checkpoint validation loss only",
+    "validation_losses": {
+      "d128": 0.19693734171098476,
+      "d320": 0.20322377112032147,
+      "d512": 0.2087959912276347
+    },
+    "selected_latent_dim": 128,
+    "test_metrics_used_for_selection": false,
+    "selected_baseline_job_id": "1425949"
+  },
+  "benchmark_path": "/home/evlasova/irrm-codec/data/benchmark/trb",
+  "benchmark_ready_sha256": "ce08945c0c0a975c2b05129695c26399456f185fe79b89914c0ad52e4fdcf167",
+  "preflight": {
+    "job_id": "1425954",
+    "status": "ready",
+    "report_path": "/home/evlasova/irrm-codec/experiments/trb/rq5-char-rtp-d128-depths-seed42/preflight.json",
+    "runtime": {
+      "python": "3.11.15",
+      "torch": "2.4.1+cu121"
+    }
+  },
+  "candidates": [
+    {
+      "encoder_layers": 2,
+      "decoder_layers": 4,
+      "parameter_count": 18677033,
+      "output_dir": "/home/evlasova/irrm-codec/experiments/trb/rq5-char-rtp-d128-e2d4-seed42",
+      "job_id": "1425955",
+      "status": "completed"
+    },
+    {
+      "encoder_layers": 6,
+      "decoder_layers": 4,
+      "parameter_count": 23608873,
+      "output_dir": "/home/evlasova/irrm-codec/experiments/trb/rq5-char-rtp-d128-e6d4-seed42",
+      "job_id": "1425956",
+      "status": "completed"
+    }
+  ]
+}

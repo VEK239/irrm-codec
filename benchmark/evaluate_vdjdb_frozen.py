@@ -30,8 +30,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--cohort", type=Path, required=True)
     parser.add_argument("--cohort-preflight", type=Path, required=True)
     parser.add_argument("--tokenizer", type=Path, required=True)
-    parser.add_argument("--model", action="append", required=True,
-                        help="NAME:CHECKPOINT:RUN_CONFIG; repeat for r,p,rp,rtp")
+    parser.add_argument(
+        "--model", action="append", required=True,
+        help="NAME:CHECKPOINT:RUN_CONFIG; legacy R/P/RP/RTP or the full seven-condition factorial",
+    )
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--max-pairs-per-label", type=int, default=2000)
@@ -63,16 +65,21 @@ def parse_models(values: list[str]) -> dict[str, tuple[Path, Path]]:
         if name in result:
             raise ValueError(f"Duplicate model name: {name}")
         result[name] = (Path(checkpoint), Path(config))
-    if set(result) != {"r", "p", "rp", "rtp"}:
-        raise ValueError("Exact required model names are r, p, rp, and rtp.")
+    legacy = {"r", "p", "rp", "rtp"}
+    factorial = {"r", "t", "p", "rt", "rp", "tp", "rtp"}
+    if set(result) not in (legacy, factorial):
+        raise ValueError("Models must be legacy r/p/rp/rtp or the full seven-condition factorial.")
     return result
 
 
 def validate_run_configs(models: dict[str, tuple[Path, Path]]) -> tuple[IRRMCodecConfig, dict]:
     expected_weights = {
         "r": (1.0, 0.0, 0.0),
+        "t": (0.0, 1.0, 0.0),
         "p": (0.0, 0.0, 1.0),
+        "rt": (1.0, 1.0, 0.0),
         "rp": (1.0, 0.0, 1.0),
+        "tp": (0.0, 1.0, 1.0),
         "rtp": (1.0, 1.0, 1.0),
     }
     configs = {name: json.loads(path.read_text(encoding="utf-8")) for name, (_, path) in models.items()}

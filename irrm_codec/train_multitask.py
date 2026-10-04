@@ -60,6 +60,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pgen-loss-weight", type=float, default=1.0)
     parser.add_argument("--reconstruction-loss-weight", type=float, default=1.0)
     parser.add_argument("--tcremp-mse-fraction", type=float, default=0.7)
+    parser.add_argument("--tcremp-centered-cosine-weight", type=float, default=0.0)
+    parser.add_argument("--tcremp-pairwise-log-distance-weight", type=float, default=0.0)
     parser.add_argument("--pgen-huber-delta", type=float, default=0.5)
     parser.add_argument("--label-smoothing", type=float, default=0.0)
 
@@ -141,6 +143,16 @@ def validate_args(args: argparse.Namespace) -> None:
         == 0
     ):
         raise ValueError("At least one task loss weight must be positive.")
+    geometry_weight = (
+        args.tcremp_centered_cosine_weight
+        + args.tcremp_pairwise_log_distance_weight
+    )
+    if (
+        args.tcremp_centered_cosine_weight < 0
+        or args.tcremp_pairwise_log_distance_weight < 0
+        or geometry_weight > 1
+    ):
+        raise ValueError("TCRemP geometry weights must be non-negative and sum to at most 1.")
 
 
 def choose_device(requested: str) -> torch.device:
@@ -462,6 +474,8 @@ def main() -> None:
             reconstruction=args.reconstruction_loss_weight,
         ),
         tcremp_mse_fraction=args.tcremp_mse_fraction,
+        tcremp_centered_cosine_weight=args.tcremp_centered_cosine_weight,
+        tcremp_pairwise_log_distance_weight=args.tcremp_pairwise_log_distance_weight,
         pgen_huber_delta=args.pgen_huber_delta,
         label_smoothing=args.label_smoothing,
     )

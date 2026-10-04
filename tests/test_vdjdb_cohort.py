@@ -1,6 +1,8 @@
 import json
 import unittest
+from pathlib import Path
 
+from benchmark.evaluate_vdjdb_frozen import parse_models
 from benchmark.prepare_vdjdb_epitope_cohort import normalize_vdjdb_row
 
 
@@ -48,6 +50,14 @@ class NormalizeVDJdbRowTests(unittest.TestCase):
         normalized, reason = normalize_vdjdb_row(row(**{"vdjdb.score": "0"}), min_score=1)
         self.assertIsNone(normalized)
         self.assertEqual(reason, "low_or_invalid_score")
+
+    def test_frozen_evaluator_accepts_full_seven_condition_factorial(self):
+        values = [f"{name}:{name}.pt:{name}.json" for name in (
+            "r", "t", "p", "rt", "rp", "tp", "rtp"
+        )]
+        parsed = parse_models(values)
+        self.assertEqual(set(parsed), {"r", "t", "p", "rt", "rp", "tp", "rtp"})
+        self.assertEqual(parsed["tp"], (Path("tp.pt"), Path("tp.json")))
 
 
 if __name__ == "__main__":

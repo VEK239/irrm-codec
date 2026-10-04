@@ -1,0 +1,56 @@
+{
+  "experiment_id": "rq2-char-rp-seed42",
+  "research_question": "Phase 2 / RQ2-RQ3 character-tokenizer head ablation",
+  "condition": "reconstruction_plus_pgen_R_plus_P",
+  "base_git_revision": "3c873ff7b05e876a80cd226c8099fc1f8b282e91",
+  "saved_pr_revision": "330dfdfb48bd867a195599043405e4d89999673e",
+  "data_dir": "/home/evlasova/irrm-codec/data/benchmark/trb",
+  "output_dir": "/home/evlasova/irrm-codec/experiments/trb/rq2-char-rp-seed42",
+  "tokenizer": "char",
+  "seed": 42,
+  "train_subset": "all",
+  "pgen_target": "log10_pgen_1mm",
+  "model": {
+    "max_sequence_len": 40,
+    "d_model": 320,
+    "latent_dim": 320,
+    "nhead": 8,
+    "encoder_layers": 4,
+    "decoder_layers": 4,
+    "ff_dim": 1280,
+    "dropout": 0.1,
+    "tcremp_head_dim": 1024,
+    "pgen_head_dim": 256,
+    "decoder_memory_tokens": 4
+  },
+  "loss": {
+    "tcremp": 0.0,
+    "pgen": 1.0,
+    "reconstruction": 1.0,
+    "tcremp_mse_fraction": 0.7,
+    "pgen_huber_delta": 0.5,
+    "label_smoothing": 0.0
+  },
+  "training": {
+    "batch_size": 64,
+    "epochs": 40,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "gradient_accumulation_steps": 1,
+    "max_grad_norm": 1.0,
+    "early_stopping_patience": 0,
+    "scheduler_factor": 0.5,
+    "scheduler_patience": 2,
+    "scheduler_min_lr": 0.000001,
+    "amp": true
+  },
+  "slurm": {
+    "partition": "medium",
+    "constraint": "gpu",
+    "gpus": 1,
+    "cpus": 8,
+    "memory": "48G",
+    "time": "12:00:00",
+    "job_id": "1425902"
+  }
+}
