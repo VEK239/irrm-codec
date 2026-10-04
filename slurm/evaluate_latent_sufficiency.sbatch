@@ -5,11 +5,11 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=192G
 #SBATCH --time=16:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/latent-sufficiency/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/latent-sufficiency/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 
 set -euo pipefail
-ROOT="/home/evlasova/irrm-codec"
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 BASE="$ROOT/experiments/trb/latent-sufficiency"
 OUTPUT="$BASE/evaluation-${SLURM_JOB_ID}"
 DATA="$ROOT/data/benchmark/trb"

@@ -8,7 +8,7 @@
 #SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/external-model-benchmark/logs/tfidf-%j.err
 
 set -euo pipefail
-REPO=/home/evlasova/irrm-codec
+REPO="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 PYTHON=/home/evlasova/.conda/envs/irrm-codec/bin/python
 ROOT="$REPO/experiments/trb/external-model-benchmark"
 export PYTHONPATH="$REPO${PYTHONPATH:+:$PYTHONPATH}"

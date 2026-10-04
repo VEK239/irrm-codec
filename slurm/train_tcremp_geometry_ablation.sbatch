@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
 #SBATCH --time=16:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 set -euo pipefail
 VARIANT="${1:?Variant centered or relational required}"
 case "$VARIANT" in
@@ -15,7 +15,7 @@ case "$VARIANT" in
   relational) C=0.15; P=0.35 ;;
   *) echo "Unknown variant: $VARIANT" >&2; exit 2 ;;
 esac
-ROOT=/home/evlasova/irrm-codec
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 OUT="$ROOT/experiments/trb/tcremp-geometry-t-${VARIANT}-seed42"
 PYTHON=/home/evlasova/.conda/envs/irrm-codec/bin/python
 test ! -e "$OUT/best.pt"

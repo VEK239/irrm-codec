@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
 #SBATCH --time=12:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 
 set -euo pipefail
 
@@ -20,12 +20,12 @@ case "$EXPERIMENT_ID:$TCREMP_WEIGHT:$PGEN_WEIGHT:$RECONSTRUCTION_WEIGHT" in
   *) echo "Refusing unregistered RQ4 configuration" >&2; exit 2 ;;
 esac
 
-ROOT_DIR="/home/evlasova/irrm-codec"
+ROOT_DIR="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 DATA_DIR="$ROOT_DIR/data/benchmark/trb"
 TOKENIZER_DIR="$ROOT_DIR/experiments/trb/tokenizers/wordpiece-seed42"
 TOKENIZER_PATH="$TOKENIZER_DIR/tokenizer.json"
 OUTPUT_DIR="$ROOT_DIR/experiments/trb/$EXPERIMENT_ID"
-PYTHON_BIN="/home/evlasova/.conda/envs/irrm-codec/bin/python"
+PYTHON_BIN="${IRRM_PYTHON:-$(command -v python)}"
 
 test -f "$DATA_DIR/READY.json"
 test -f "$TOKENIZER_DIR/preflight.json"

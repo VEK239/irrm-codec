@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
 #SBATCH --time=12:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 
 set -euo pipefail
 CONDITION="${1:?Condition t, rt, or tp is required}"
@@ -18,14 +18,14 @@ case "$CONDITION" in
   *) echo "Refusing unregistered DATA-ANCHOR objective condition" >&2; exit 2 ;;
 esac
 
-ROOT_DIR="/home/evlasova/irrm-codec"
+ROOT_DIR="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 DATA_DIR="$ROOT_DIR/data/benchmark/trb"
 TOKENIZER="$ROOT_DIR/experiments/trb/tokenizers/anchored-seed42/data_anchor/anchored_tokenizer.json"
 MATRIX_ROOT="$ROOT_DIR/experiments/trb/data-anchor-full-factorial-gate"
 PREFLIGHT="$MATRIX_ROOT/PREFLIGHT.json"
 CONDITION_CONFIG="$MATRIX_ROOT/configs/$CONDITION.json"
 OUTPUT_DIR="$ROOT_DIR/experiments/trb/data-anchor-$CONDITION-seed42"
-PYTHON_BIN="/home/evlasova/.conda/envs/irrm-codec/bin/python"
+PYTHON_BIN="${IRRM_PYTHON:-$(command -v python)}"
 
 test -x "$PYTHON_BIN"
 test -f "$DATA_DIR/READY.json"

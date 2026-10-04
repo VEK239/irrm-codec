@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-ROOT_DIR="/home/evlasova/irrm-codec"
+ROOT_DIR="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 OUTPUT_DIR="$ROOT_DIR/data/benchmark/trb"
 cd "$ROOT_DIR"
 

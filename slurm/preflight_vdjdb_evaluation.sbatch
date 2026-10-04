@@ -5,14 +5,14 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
 #SBATCH --time=01:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/vdjdb-data-anchor-validation/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/vdjdb-data-anchor-validation/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 
 set -euo pipefail
-ROOT_DIR="/home/evlasova/irrm-codec"
+ROOT_DIR="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 VALIDATION_ROOT="$ROOT_DIR/experiments/trb/vdjdb-data-anchor-validation"
 COHORT_DIR="$VALIDATION_ROOT/cohort-preflight-1426341"
-PYTHON_BIN="/home/evlasova/.conda/envs/irrm-codec/bin/python"
+PYTHON_BIN="${IRRM_PYTHON:-$(command -v python)}"
 OUTPUT="$VALIDATION_ROOT/evaluation-code-preflight-${SLURM_JOB_ID}.json"
 
 test -x "$PYTHON_BIN"

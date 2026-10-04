@@ -5,14 +5,14 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --time=02:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/tokenizers/wordpiece-sweep-seed42/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/tokenizers/wordpiece-sweep-seed42/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 
 set -euo pipefail
-ROOT_DIR="/home/evlasova/irrm-codec"
+ROOT_DIR="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 DATA_DIR="$ROOT_DIR/data/benchmark/trb"
 TOKENIZER_ROOT="$ROOT_DIR/experiments/trb/tokenizers/wordpiece-sweep-seed42"
-PYTHON_BIN="/home/evlasova/.conda/envs/irrm-codec/bin/python"
+PYTHON_BIN="${IRRM_PYTHON:-$(command -v python)}"
 
 test -f "$DATA_DIR/READY.json"
 test ! -e "$TOKENIZER_ROOT/sweep_manifest.json"

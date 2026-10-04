@@ -9,7 +9,7 @@
 
 set -euo pipefail
 
-REPO=/home/evlasova/irrm-codec
+REPO="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 PYTHON=/home/evlasova/.conda/envs/irrm-codec/bin/python
 DATASET="$REPO/data/benchmark/trb"
 RTP="$REPO/experiments/trb/latent-sufficiency/evaluation-1426737/embeddings_rtp.npy"

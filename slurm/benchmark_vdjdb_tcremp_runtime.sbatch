@@ -9,7 +9,7 @@
 set -euo pipefail
 THREADS="${1:?Pass the requested TCRemP worker count (1 or 16)}"
 case "$THREADS" in 1|16) ;; *) echo "threads must be 1 or 16" >&2; exit 2;; esac
-ROOT=/home/evlasova/irrm-codec
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 OUT="$ROOT/experiments/trb/vdjdb-runtime-benchmark/tcremp-${THREADS}cpu-${SLURM_JOB_ID}"
 TCREMP_ROOT=/home/evlasova/tcremp-git/tcremp
 PYTHON=/home/evlasova/.conda/envs/vdjdb-redcea/bin/python

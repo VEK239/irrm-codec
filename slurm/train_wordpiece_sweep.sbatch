@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
 #SBATCH --time=12:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 
 set -euo pipefail
 VOCAB_SIZE="${1:?WordPiece vocabulary size is required}"
@@ -16,14 +16,14 @@ case "$VOCAB_SIZE" in
   *) echo "Refusing unregistered WordPiece vocabulary size" >&2; exit 2 ;;
 esac
 
-ROOT_DIR="/home/evlasova/irrm-codec"
+ROOT_DIR="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 DATA_DIR="$ROOT_DIR/data/benchmark/trb"
 TOKENIZER_ROOT="$ROOT_DIR/experiments/trb/tokenizers/wordpiece-sweep-seed42"
 TOKENIZER_DIR="$TOKENIZER_ROOT/v${VOCAB_SIZE}-seed42"
 TOKENIZER_PATH="$TOKENIZER_DIR/tokenizer.json"
 EXPERIMENT_ID="wp-sweep-v${VOCAB_SIZE}-rtp-seed42"
 OUTPUT_DIR="$ROOT_DIR/experiments/trb/$EXPERIMENT_ID"
-PYTHON_BIN="/home/evlasova/.conda/envs/irrm-codec/bin/python"
+PYTHON_BIN="${IRRM_PYTHON:-$(command -v python)}"
 
 test -f "$DATA_DIR/READY.json"
 test -f "$TOKENIZER_ROOT/preflight.json"

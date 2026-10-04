@@ -11,7 +11,7 @@
 #SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/external-model-benchmark/native-rtp128-v1/logs/recon-%A-%a.err
 
 set -euo pipefail
-REPO=/home/evlasova/irrm-codec
+REPO="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 PYTHON=/home/evlasova/.conda/envs/irrm-codec/bin/python
 BASE="$REPO/experiments/trb/external-model-benchmark"
 ROOT="$BASE/native-rtp128-v1"

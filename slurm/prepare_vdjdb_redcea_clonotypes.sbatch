@@ -5,11 +5,11 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
 #SBATCH --time=02:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/vdjdb-redcea-clonotypes/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/vdjdb-redcea-clonotypes/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 
 set -euo pipefail
-ROOT="/home/evlasova/irrm-codec"
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 BASE="$ROOT/experiments/trb/vdjdb-redcea-clonotypes"
 OUTPUT="$BASE/preflight-${SLURM_JOB_ID}"
 SOURCE="$OUTPUT/cluster_members_TRB.txt"

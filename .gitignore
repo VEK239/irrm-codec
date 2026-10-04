@@ -47,3 +47,16 @@ data/
 
 # Reports
 reports/
+
+# Generated experiments and local publication scratch
+.publish-*/
+.tmp*/
+tmp/
+output/
+manuscript/
+*.pt
+*.pth
+*.npy
+*.npz
+experiments/**/wandb/
+experiments/**/predictions/

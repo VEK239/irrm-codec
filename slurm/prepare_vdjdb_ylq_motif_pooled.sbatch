@@ -5,11 +5,11 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --time=02:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/vdjdb-ylq-official-motif-pooled/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/vdjdb-ylq-official-motif-pooled/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 
 set -euo pipefail
-ROOT="/home/evlasova/irrm-codec"
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 SNAPSHOT="/projects/immunestatus/vdjdb/vdjdb-2025-07-30"
 OUTPUT="$ROOT/experiments/trb/vdjdb-ylq-official-motif-pooled/preflight-${SLURM_JOB_ID}"
 PYTHON="/home/evlasova/.conda/envs/irrm-codec/bin/python"

@@ -11,7 +11,7 @@
 #SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/external-model-benchmark/logs/cache-%A-%a.err
 
 set -euo pipefail
-REPO=/home/evlasova/irrm-codec
+REPO="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 PYTHON=/home/evlasova/.conda/envs/irrm-codec/bin/python
 RUNTIME="$REPO/experiments/trb/external-model-benchmark/runtime-v2"
 COHORT="$REPO/experiments/trb/external-model-benchmark/cohort"

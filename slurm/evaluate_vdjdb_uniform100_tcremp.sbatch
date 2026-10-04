@@ -7,7 +7,7 @@
 #SBATCH --time=16:00:00
 
 set -euo pipefail
-ROOT=/home/evlasova/irrm-codec
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 OUT="$ROOT/experiments/trb/vdjdb-uniform100-v1/tcremp-${SLURM_JOB_ID}"
 COHORT="$ROOT/experiments/trb/vdjdb-redcea-clonotypes/preflight-1426719/cohort/cohort.tsv"
 PAIRS="$ROOT/experiments/trb/vdjdb-uniform100-v1/evaluation-1427813/uniform_pairs.npz"

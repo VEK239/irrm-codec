@@ -8,7 +8,7 @@
 #SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/external-global-author-v1/logs/vdjdb-%j.err
 
 set -euo pipefail
-REPO=/home/evlasova/irrm-codec
+REPO="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 PYTHON=/home/evlasova/.conda/envs/irrm-codec/bin/python
 BASE="$REPO/experiments/trb/external-global-author-v1"
 COHORT="$REPO/experiments/trb/vdjdb-redcea-clonotypes/preflight-1426719/cohort/cohort.tsv"

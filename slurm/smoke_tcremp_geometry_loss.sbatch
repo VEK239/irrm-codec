@@ -6,10 +6,10 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --time=00:30:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 set -euo pipefail
-ROOT=/home/evlasova/irrm-codec
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 OUT="$ROOT/experiments/trb/tcremp-geometry-smoke-${SLURM_JOB_ID}"
 PYTHON=/home/evlasova/.conda/envs/irrm-codec/bin/python
 cd "$ROOT"

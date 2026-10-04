@@ -1,8 +1,8 @@
 """WordPiece tokenizer for CDR3 sequences, as an alternative to the char-level one.
 
 Requires: pip install tokenizers
-Requires a tokenizer.json with special tokens at [PAD]=0, [UNK]=1, [BOS]=2, [EOS]=3 —
-same ids irrm_codec.tokenization uses. A mismatched file raises ValueError.
+Requires a tokenizer.json with special tokens at [PAD]=0, [UNK]=1, [BOS]=2, [EOS]=3 â€”
+The author layout [PAD]/[BOS]/[EOS]/[UNK]=0/1/2/3 is also accepted. IDs are never remapped.
 """
 from pathlib import Path
 
@@ -14,18 +14,20 @@ from irrm_codec.tokenization import BOS_ID, EOS_ID, PAD_ID, UNK_ID, VALID_AA
 _EXPECTED_SPECIAL_IDS = {"[PAD]": PAD_ID, "[UNK]": UNK_ID, "[BOS]": BOS_ID, "[EOS]": EOS_ID}
 
 
-def _validate_special_ids(tokenizer, tokenizer_path):
-    """Check PAD/UNK/BOS/EOS ids match, since ForwardModel/InverseModel assume padding_idx=0."""
-    for token, expected_id in _EXPECTED_SPECIAL_IDS.items():
-        actual_id = tokenizer.token_to_id(token)
-        if actual_id != expected_id:
-            raise ValueError(
-                f"Tokenizer at {tokenizer_path} has {token}={actual_id}, expected {expected_id}."
-            )
+def validate_wordpiece_tokenizer(tokenizer, source):
+    """Accept the published author and student special-token layouts without remapping IDs."""
+    observed = {token: tokenizer.token_to_id(token) for token in _EXPECTED_SPECIAL_IDS}
+    author = {"[PAD]": 0, "[BOS]": 1, "[EOS]": 2, "[UNK]": 3}
+    student = {"[PAD]": 0, "[UNK]": 1, "[BOS]": 2, "[EOS]": 3}
+    if observed not in (author, student):
+        raise ValueError(f"Tokenizer at {source} has unsupported special IDs: {observed}.")
 
+
+def _validate_special_ids(tokenizer, tokenizer_path):
+    validate_wordpiece_tokenizer(tokenizer, tokenizer_path)
 
 def load_wordpiece_tokenizer(path) -> Tokenizer:
-    """Load and validate a tokenizer.json. Returns the Tokenizer itself — it's picklable,
+    """Load and validate a tokenizer.json. Returns the Tokenizer itself â€” it's picklable,
     so it can go straight into a DataLoader worker."""
     tokenizer = Tokenizer.from_file(str(Path(path)))
     _validate_special_ids(tokenizer, path)
@@ -62,7 +64,7 @@ def encode_wordpiece_unpadded(
     token_ids = tokenizer.encode(sequence).ids
     if not token_ids:
         raise ValueError("WordPiece encoding must contain at least one token.")
-    if UNK_ID in token_ids:
+    if tokenizer.token_to_id("[UNK]") in token_ids:
         raise ValueError(f"WordPiece encoding contains [UNK] for sequence {sequence!r}.")
     if len(token_ids) > max_len:
         raise ValueError(
@@ -121,8 +123,9 @@ def encode_wordpiece_anchored(seq, tokenizer, max_len, left_anchor=1, right_anch
 def decode_wordpiece(token_ids, tokenizer, stop_at_eos=True):
     """Decode ids back to an amino-acid string, stopping at the first EOS by default."""
     ids = list(token_ids)
-    if stop_at_eos and EOS_ID in ids:
-        ids = ids[: ids.index(EOS_ID)]
+    eos_id = tokenizer.token_to_id("[EOS]")
+    if stop_at_eos and eos_id in ids:
+        ids = ids[: ids.index(eos_id)]
     return tokenizer.decode(ids, skip_special_tokens=True)
 
 

@@ -7,7 +7,7 @@
 #SBATCH --time=16:00:00
 
 set -euo pipefail
-ROOT=/home/evlasova/irrm-codec
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 OUT="$ROOT/experiments/trb/vdjdb-uniform100-v1/tcremp-pca128-${SLURM_JOB_ID}"
 TRAIN_DATA="$ROOT/experiments/trb/external-model-benchmark/cohort"
 TRAIN_TCREMP="$TRAIN_DATA/representations/tcremp.npy"

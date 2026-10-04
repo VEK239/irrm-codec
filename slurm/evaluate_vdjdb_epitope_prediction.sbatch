@@ -9,7 +9,7 @@
 #SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/epitope-prediction-v1/logs/run-%j.err
 
 set -euo pipefail
-REPO=/home/evlasova/irrm-codec
+REPO="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 PYTHON=/home/evlasova/.conda/envs/irrm-codec/bin/python
 BASE="$REPO/experiments/trb/epitope-prediction-v1"
 COHORT="$REPO/experiments/trb/vdjdb-redcea-clonotypes/preflight-1426719/cohort/cohort.tsv"

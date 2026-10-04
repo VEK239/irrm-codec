@@ -7,7 +7,7 @@
 #SBATCH --time=16:00:00
 
 set -euo pipefail
-ROOT=/home/evlasova/irrm-codec
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 OUT="$ROOT/experiments/trb/vdjdb_decoded_tcremp/${SLURM_JOB_ID}"
 cd "$ROOT"
 PYTHONPATH="$ROOT" /home/evlasova/.conda/envs/irrm-codec/bin/python benchmark/evaluate_vdjdb_decoded_tcremp.py \

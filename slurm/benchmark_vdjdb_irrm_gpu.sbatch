@@ -8,7 +8,7 @@
 #SBATCH --time=2:00:00
 
 set -euo pipefail
-ROOT=/home/evlasova/irrm-codec
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 OUT="$ROOT/experiments/trb/vdjdb-runtime-benchmark/irrm-gpu-${SLURM_JOB_ID}"
 mkdir -p "$OUT"
 cd "$ROOT"

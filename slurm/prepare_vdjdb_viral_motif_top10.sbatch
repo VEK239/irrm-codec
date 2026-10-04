@@ -5,12 +5,12 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --time=02:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/vdjdb-viral-motif-top10/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/vdjdb-viral-motif-top10/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 
 set -euo pipefail
 MODE="${1:-prepare}"
-ROOT="/home/evlasova/irrm-codec"
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 SNAPSHOT="/projects/immunestatus/vdjdb/vdjdb-2025-07-30"
 OUTPUT="$ROOT/experiments/trb/vdjdb-viral-motif-top10/${MODE}-${SLURM_JOB_ID}"
 SPECIES="$ROOT/benchmark/viral_antigen_species_2025_07_30.txt"

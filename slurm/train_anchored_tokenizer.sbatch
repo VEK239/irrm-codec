@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
 #SBATCH --time=12:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 
 set -euo pipefail
 KIND="${1:?Tokenizer kind is required}"
@@ -16,11 +16,11 @@ case "$KIND" in
   *) echo "Refusing unregistered anchored tokenizer" >&2; exit 2 ;;
 esac
 
-ROOT_DIR="/home/evlasova/irrm-codec"
+ROOT_DIR="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 DATA_DIR="$ROOT_DIR/data/benchmark/trb"
 TOKENIZER_ROOT="$ROOT_DIR/experiments/trb/tokenizers/anchored-seed42"
 TOKENIZER_PATH="$TOKENIZER_ROOT/$KIND/anchored_tokenizer.json"
-PYTHON_BIN="/home/evlasova/.conda/envs/irrm-codec/bin/python"
+PYTHON_BIN="${IRRM_PYTHON:-$(command -v python)}"
 case "$KIND" in
   edge_k) EXPERIMENT_ID="anchor-edge3-rtp-seed42" ;;
   data_anchor) EXPERIMENT_ID="anchor-data-rtp-seed42" ;;

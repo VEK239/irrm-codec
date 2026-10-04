@@ -5,12 +5,12 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
 #SBATCH --time=08:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/vdjdb-ylq-official-motif-pooled/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/vdjdb-ylq-official-motif-pooled/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 
 set -euo pipefail
 PREFLIGHT_DIR="${1:?Official-motif pooled preflight directory is required}"
-ROOT="/home/evlasova/irrm-codec"
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 OUTPUT="$ROOT/experiments/trb/vdjdb-ylq-official-motif-pooled/evaluation-${SLURM_JOB_ID}"
 TOKENIZER="$ROOT/experiments/trb/tokenizers/anchored-seed42/data_anchor/anchored_tokenizer.json"
 PYTHON="/home/evlasova/.conda/envs/irrm-codec/bin/python"

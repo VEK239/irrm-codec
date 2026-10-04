@@ -5,11 +5,11 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --time=02:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/single-aa-challenge/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/single-aa-challenge/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 
 set -euo pipefail
-ROOT=/home/evlasova/irrm-codec
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 BASE="$ROOT/experiments/trb/single-aa-challenge"
 OUT="$BASE/preflight-${SLURM_JOB_ID}"
 PYTHON=/home/evlasova/.conda/envs/irrm-codec/bin/python

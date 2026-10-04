@@ -9,7 +9,7 @@
 #SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/epitope-prediction-v1/logs/finalize-%j.err
 
 set -euo pipefail
-REPO=/home/evlasova/irrm-codec
+REPO="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 PYTHON=/home/evlasova/.conda/envs/irrm-codec/bin/python
 OUT="${EPITOPE_PREDICTION_OUT:-$REPO/experiments/trb/epitope-prediction-v1/evaluation-1429982}"
 export PYTHONPATH="$REPO${PYTHONPATH:+:$PYTHONPATH}"

@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
 #SBATCH --time=04:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/vdjdb-uniform100-v1/slurm-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/vdjdb-uniform100-v1/slurm-%j.err
+#SBATCH --output=slurm-%j.out
+#SBATCH --error=slurm-%j.err
 
 set -euo pipefail
 

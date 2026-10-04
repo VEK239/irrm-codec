@@ -5,12 +5,12 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=128G
 #SBATCH --time=16:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/vdjdb-redcea-clonotypes/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/vdjdb-redcea-clonotypes/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 
 set -euo pipefail
 PREFLIGHT_ROOT="${1:?Preflight job directory is required}"
-ROOT="/home/evlasova/irrm-codec"
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 BASE="$ROOT/experiments/trb/vdjdb-redcea-clonotypes"
 OUTPUT="$BASE/evaluation-${SLURM_JOB_ID}"
 TOKENIZER="$ROOT/experiments/trb/tokenizers/anchored-seed42/data_anchor/anchored_tokenizer.json"

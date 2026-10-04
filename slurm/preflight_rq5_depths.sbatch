@@ -9,8 +9,8 @@
 #SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/rq5-char-rtp-d128-depths-seed42/preflight-%j.err
 
 set -euo pipefail
-ROOT_DIR="/home/evlasova/irrm-codec"
-PYTHON_BIN="/home/evlasova/.conda/envs/irrm-codec/bin/python"
+ROOT_DIR="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
+PYTHON_BIN="${IRRM_PYTHON:-$(command -v python)}"
 cd "$ROOT_DIR"
 "$PYTHON_BIN" -m scripts.preflight_rq5_depths \
   --baseline-run-config "$ROOT_DIR/experiments/trb/rq5-char-rtp-d128-seed42/run_config.json" \

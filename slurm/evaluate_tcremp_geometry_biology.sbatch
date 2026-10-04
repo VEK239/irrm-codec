@@ -6,12 +6,12 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
 #SBATCH --time=16:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 set -euo pipefail
 VARIANT="${1:?Variant centered or relational required}"
 case "$VARIANT" in centered|relational) ;; *) exit 2 ;; esac
-ROOT=/home/evlasova/irrm-codec
+ROOT="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 MODEL="$ROOT/experiments/trb/tcremp-geometry-t-${VARIANT}-seed42"
 OUT="$ROOT/experiments/trb/vdjdb-tcremp-geometry-${VARIANT}-${SLURM_JOB_ID}"
 COHORT="$ROOT/experiments/trb/vdjdb-redcea-clonotypes/preflight-1426719/cohort/cohort.tsv"

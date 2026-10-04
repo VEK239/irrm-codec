@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
 #SBATCH --time=12:00:00
-#SBATCH --output=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.out
-#SBATCH --error=/home/evlasova/irrm-codec/experiments/trb/slurm-%x-%j.err
+#SBATCH --output=slurm-%x-%j.out
+#SBATCH --error=slurm-%x-%j.err
 
 set -euo pipefail
 EXPERIMENT_ID="${1:?experiment id is required}"
@@ -17,10 +17,10 @@ case "$EXPERIMENT_ID:$LATENT_DIM" in
   *) echo "Refusing unregistered RQ5 width" >&2; exit 2 ;;
 esac
 
-ROOT_DIR="/home/evlasova/irrm-codec"
+ROOT_DIR="${IRRM_ROOT:-${SLURM_SUBMIT_DIR:-$PWD}}"
 DATA_DIR="$ROOT_DIR/data/benchmark/trb"
 OUTPUT_DIR="$ROOT_DIR/experiments/trb/$EXPERIMENT_ID"
-PYTHON_BIN="/home/evlasova/.conda/envs/irrm-codec/bin/python"
+PYTHON_BIN="${IRRM_PYTHON:-$(command -v python)}"
 test -f "$ROOT_DIR/experiments/trb/rq5-char-rtp-widths-seed42/preflight.json"
 test -f "$DATA_DIR/READY.json"
 test -f "$OUTPUT_DIR/experiment_config.json"
