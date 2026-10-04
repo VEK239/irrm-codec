@@ -1,0 +1,117 @@
+{
+  "airr_path": "C:\\Users\\Smoki\\irrm-codec\\data\\zenodo\\trb_background_100k.tsv",
+  "embeddings_path": "C:\\Users\\Smoki\\irrm-codec\\data\\zenodo\\trb_background_embeddings.parquet",
+  "locus": "beta",
+  "chain": "TRB",
+  "species": "human",
+  "seed": 42,
+  "max_len": 40,
+  "cleaning": {
+    "rows_input": 100000,
+    "rows_after_locus_filter": 100000,
+    "dropped_missing": 0,
+    "dropped_invalid_chars": 0,
+    "dropped_too_short": 0,
+    "dropped_too_long": 0,
+    "dropped_non_functional_v_call": 335,
+    "dropped_non_functional_j_call": 0,
+    "dropped_duplicate_cdr3": 0,
+    "rows_kept": 99663,
+    "dropped_non_finite_pgen": 2
+  },
+  "embedding_dim": 9000,
+  "embedding_alignment": {
+    "length_corr": 0.5251705966285264,
+    "shuffled_length_corr": 0.008426662808806782,
+    "min_corr_threshold": 0.3
+  },
+  "alignment_mode": "row_order",
+  "pgen": {
+    "source": "cache",
+    "path": "data\\benchmark\\trb\\pgen.tsv"
+  },
+  "split_sizes": {
+    "train": 79730,
+    "val": 9966,
+    "test": 9967
+  },
+  "split_fractions": {
+    "train": 0.8,
+    "val": 0.1,
+    "test": 0.1
+  },
+  "train_subsets": {
+    "1k": 1000,
+    "10k": 10000,
+    "all": 79730
+  },
+  "cdr3_overlap_between_splits": {
+    "train_val": 0,
+    "train_test": 0,
+    "val_test": 0
+  },
+  "targets": {
+    "log10_pgen": {
+      "train": {
+        "n_finite": 79730,
+        "n_non_finite": 0,
+        "mean": -8.342815174291603,
+        "std": 1.8788593865723895,
+        "min": -28.06169119699202,
+        "max": -5.092073042426336
+      },
+      "val": {
+        "n_finite": 9966,
+        "n_non_finite": 0,
+        "mean": -8.330849724502892,
+        "std": 1.8649352353948874,
+        "min": -23.57673660375092,
+        "max": -5.252935754631411
+      },
+      "test": {
+        "n_finite": 9967,
+        "n_non_finite": 0,
+        "mean": -8.33931896402931,
+        "std": 1.8736677602653675,
+        "min": -22.300802363627707,
+        "max": -5.272577113539358
+      }
+    },
+    "log10_pgen_1mm": {
+      "train": {
+        "n_finite": 79730,
+        "n_non_finite": 0,
+        "mean": -6.526844812213512,
+        "std": 1.6264507836142756,
+        "min": -25.268624790379345,
+        "max": -3.967721318105829
+      },
+      "val": {
+        "n_finite": 9966,
+        "n_non_finite": 0,
+        "mean": -6.516624042597638,
+        "std": 1.611059243463444,
+        "min": -19.405392492212744,
+        "max": -3.999265344121248
+      },
+      "test": {
+        "n_finite": 9967,
+        "n_non_finite": 0,
+        "mean": -6.521180768534297,
+        "std": 1.6127152970829823,
+        "min": -19.90410715459764,
+        "max": -4.018798001189545
+      }
+    }
+  },
+  "cdr3_length": {
+    "min": 6,
+    "median": 14.0,
+    "max": 25
+  },
+  "outputs": {
+    "dataset": "C:\\Users\\Smoki\\irrm-codec\\data\\benchmark\\trb\\dataset.parquet",
+    "embeddings": "C:\\Users\\Smoki\\irrm-codec\\data\\benchmark\\trb\\embeddings.npy",
+    "manifests": "C:\\Users\\Smoki\\irrm-codec\\data\\benchmark\\trb\\manifests"
+  }
+}
