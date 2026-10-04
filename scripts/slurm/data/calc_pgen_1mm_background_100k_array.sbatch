@@ -5,7 +5,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=8         # Run on a single CPU
-#SBATCH --mem=16gb  
+#SBATCH --mem=16gb
 #SBATCH --array=0-0
 #SBATCH --output=/projects/immunestatus/vdjrearm/irrmcodec/logs/%x_%A_%a.out
 #SBATCH --error=/projects/immunestatus/vdjrearm/irrmcodec/logs/%x_%A_%a.err

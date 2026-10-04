@@ -25,3 +25,5 @@ Keep these files together when moving or releasing a run:
 `rtp-codec encode --tokenizer ...` overrides a recorded tokenizer path while preserving vocabulary IDs. A tokenizer with the same vocabulary size but different token surfaces is not interchangeable. The inference API uses the dimension saved in the checkpoint, including older 320-dimensional configurations.
 
 A complete public data/model release remains a separate step: archive the exact assets, verify hashes, attach their licenses and add stable download links here. Source installation and small CPU tests work without those assets; the full manuscript experiments require them.
+
+Earlier 100,000-row AIRR files for IGH, IGK, IGL, TRD and TRG were removed from the current source tree; they remain available in Git history before the structure migration. They are historical cross-chain inputs, not the locked TRB manuscript dataset. The local migration also preserves them in `rtp-codec-legacy-airr-data.zip` with a SHA-256 manifest.
