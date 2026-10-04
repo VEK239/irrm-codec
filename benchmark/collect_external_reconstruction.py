@@ -96,7 +96,7 @@ def to_markdown(summary, bottleneck_dim):
 
     def cell(row, name):
         std = row[f"{name}_std"]
-        spread = f" Â± {std:.4f}" if pd.notna(std) else ""
+        spread = f" ± {std:.4f}" if pd.notna(std) else ""
         return f"{row[f'{name}_mean']:.4f}{spread}"
 
     lines = []

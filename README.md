@@ -31,7 +31,7 @@ Transformer hidden width.
   `benchmark/train_decoder.py`, `benchmark/train_pgen_arm.py`, and [historical report](REPORT.md).
 - Author external-model, residue-PCA, latent, and VDJdb evaluations: `benchmark/`
   and their matching launchers in `slurm/`.
-- Historical result tables: `results/`. They describe the original runs, not a
+- Historical result tables: `results/` (student runs) and `results/author/` (author runs). They describe the original runs, not a
   new rerun of this integrated revision.
 
 For a CPU development setup without the Pgen-generation dependency:

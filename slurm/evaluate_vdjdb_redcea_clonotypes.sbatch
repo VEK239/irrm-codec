@@ -42,4 +42,3 @@ cd "$ROOT"
   --bootstrap 2000 \
   --silhouette-sample 10000 \
   --seed 42
-

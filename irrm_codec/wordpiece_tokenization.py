@@ -1,7 +1,7 @@
 """WordPiece tokenizer for CDR3 sequences, as an alternative to the char-level one.
 
 Requires: pip install tokenizers
-Requires a tokenizer.json with special tokens at [PAD]=0, [UNK]=1, [BOS]=2, [EOS]=3 â€”
+Requires a tokenizer.json with special tokens at [PAD]=0, [UNK]=1, [BOS]=2, [EOS]=3 —
 The author layout [PAD]/[BOS]/[EOS]/[UNK]=0/1/2/3 is also accepted. IDs are never remapped.
 """
 from pathlib import Path
@@ -27,7 +27,7 @@ def _validate_special_ids(tokenizer, tokenizer_path):
     validate_wordpiece_tokenizer(tokenizer, tokenizer_path)
 
 def load_wordpiece_tokenizer(path) -> Tokenizer:
-    """Load and validate a tokenizer.json. Returns the Tokenizer itself â€” it's picklable,
+    """Load and validate a tokenizer.json. Returns the Tokenizer itself — it's picklable,
     so it can go straight into a DataLoader worker."""
     tokenizer = Tokenizer.from_file(str(Path(path)))
     _validate_special_ids(tokenizer, path)
