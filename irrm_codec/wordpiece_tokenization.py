@@ -48,6 +48,35 @@ def encode_wordpiece(seq, tokenizer, max_len):
     return ids + [PAD_ID] * (max_len - len(ids))
 
 
+def encode_wordpiece_unpadded(seq, tokenizer, max_len):
+    """Encode a CDR3 without padding; batching supplies PAD tokens later.
+
+    This is the preferred interface for the joint Transformer because it keeps
+    sequence length explicit and avoids passing a fixed-width buffer through the
+    dataset for every example.
+    """
+    seq = "" if seq is None else str(seq).strip().upper()
+    if not seq:
+        raise ValueError("Sequence must not be empty.")
+    ids = tokenizer.encode(seq).ids
+    if len(ids) > max_len:
+        raise ValueError(
+            f"Sequence '{seq}' encodes to {len(ids)} WordPiece tokens, "
+            f"exceeds max_len={max_len}."
+        )
+    return ids
+
+
+class WordpieceUnpaddedEncodeFn:
+    """Picklable unpadded encoder suitable for multi-worker DataLoaders."""
+
+    def __init__(self, tokenizer):
+        self.tokenizer = tokenizer
+
+    def __call__(self, seq, max_len):
+        return encode_wordpiece_unpadded(seq, self.tokenizer, max_len)
+
+
 def encode_wordpiece_anchored(seq, tokenizer, max_len, left_anchor=1, right_anchor=1):
     """Encode a CDR3 sequence, with padding split into the middle instead of the end.
 

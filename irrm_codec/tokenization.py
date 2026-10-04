@@ -77,6 +77,25 @@ def encode(seq, max_len=40):
     return tokens[:max_len]
 
 
+def encode_raw(seq, max_len=40):
+    """Encode an unpadded amino-acid sequence for the Transformer codec."""
+    normalized = normalize_sequence(seq)
+    invalid = sorted({char for char in normalized if char not in VALID_AA})
+    if invalid:
+        raise ValueError(f"Sequence contains unsupported amino acids: {invalid}")
+    if len(normalized) > max_len:
+        raise ValueError(
+            f"Sequence length {len(normalized)} exceeds max_len={max_len}."
+        )
+    return [AA_VOCAB[char] for char in normalized]
+
+
+def encode_reconstruction_pair(seq, max_len=40):
+    """Return teacher-forcing input and target for autoregressive reconstruction."""
+    amino_acids = encode_raw(seq, max_len=max_len)
+    return [BOS_ID, *amino_acids], [*amino_acids, EOS_ID]
+
+
 def strip_gaps(seq):
     normalized = normalize_sequence(seq)
     return normalized.replace(GAP_TOKEN, "")

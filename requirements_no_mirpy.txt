@@ -11,4 +11,5 @@ notebook
 ipykernel
 ipywidgets
 tqdm
+tokenizers>=0.20,<1
 torch==2.4.1

@@ -129,7 +129,7 @@ class CachedBatchDataset(IterableDataset):
         self.epoch = int(epoch)
 
     def _make_item(self, seq, embedding):
-        tokens = encode(seq, self.max_len)
+        tokens = default_char_encode(seq, self.max_len)
         token_tensor = torch.tensor(tokens, dtype=torch.long)
         embedding_tensor = torch.from_numpy(embedding)
 
@@ -142,8 +142,8 @@ class CachedBatchDataset(IterableDataset):
 
         return {
             "embedding": embedding_tensor,
-            "decoder_input": torch.cat([torch.tensor([BOS_ID], dtype=torch.long), token_tensor], dim=0),
-            "target": torch.cat([token_tensor, torch.tensor([EOS_ID], dtype=torch.long)], dim=0),
+            "decoder_input": token_tensor,
+            "target": token_tensor,
             "length": len(tokens),
         }
 
@@ -208,8 +208,8 @@ class InverseDataset(Dataset):
         token_tensor = torch.tensor(tokens, dtype=torch.long)
         return {
             "embedding": torch.from_numpy(self.embs[idx]),
-            "decoder_input": torch.cat([torch.tensor([BOS_ID], dtype=torch.long), token_tensor], dim=0),
-            "target": torch.cat([token_tensor, torch.tensor([EOS_ID], dtype=torch.long)], dim=0),
+            "decoder_input": token_tensor,
+            "target": token_tensor,
             "length": len(tokens),
         }
 
@@ -227,7 +227,7 @@ class PgenDataset(Dataset):
         return len(self.seqs)
 
     def __getitem__(self, idx):
-        tokens = encode(self.seqs[idx], self.max_len)
+        tokens = default_char_encode(self.seqs[idx], self.max_len)
         return {
             "tokens": torch.tensor(tokens, dtype=torch.long),
             "target": torch.tensor(self.targets[idx], dtype=torch.float32),
