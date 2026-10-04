@@ -1,0 +1,6 @@
+condition	latent_dim	encoder_layers	decoder_layers	best_epoch	best_validation_joint_loss	test_reconstruction_exact_match	test_tcremp_cosine	test_pgen_rmse	parameters	remote_output
+d128-e4d4	128	4	4	30	0.19693734171098476	0.9815950920245399	0.992289113360584	0.343395136972041	21142953	/home/evlasova/irrm-codec/experiments/trb/rq5-char-rtp-d128-seed42
+d320-e4d4	320	4	4	28	0.20322377112032147	0.971236045459117	0.9922739834801287	0.3678781484793622	21697257	/home/evlasova/irrm-codec/experiments/trb/rq1-char-rtp-seed42
+d512-e4d4	512	4	4	28	0.2087959912276347	0.9676154078246002	0.9919841033189718	0.3447591167246714	22251561	/home/evlasova/irrm-codec/experiments/trb/rq5-char-rtp-d512-seed42
+d128-e2d4	128	2	4	38	0.2047392800008221	0.9614804384994469	0.9922445351528616	0.3915365453431801	18677033	/home/evlasova/irrm-codec/experiments/trb/rq5-char-rtp-d128-e2d4-seed42
+d128-e6d4	128	6	4	28	0.20005685247478622	0.9690234335713568	0.992220890590342	0.3328977050320967	23608873	/home/evlasova/irrm-codec/experiments/trb/rq5-char-rtp-d128-e6d4-seed42

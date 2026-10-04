@@ -13,3 +13,9 @@ ipywidgets
 tqdm
 tokenizers>=0.20,<1
 torch==2.4.1
+
+scipy
+joblib
+tidytcells>=2,<3
+rapidfuzz>=3,<4
+biopython

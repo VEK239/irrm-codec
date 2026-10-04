@@ -2,27 +2,29 @@
 
 Requires: pip install tokenizers
 Requires a tokenizer.json with special tokens at [PAD]=0, [UNK]=1, [BOS]=2, [EOS]=3 —
-same ids irrm_codec.tokenization uses. A mismatched file raises ValueError.
+The author layout [PAD]/[BOS]/[EOS]/[UNK]=0/1/2/3 is also accepted. IDs are never remapped.
 """
 from pathlib import Path
 
 from tokenizers import Tokenizer
 from tokenizers.models import WordPiece
 
-from irrm_codec.tokenization import BOS_ID, EOS_ID, PAD_ID, UNK_ID
+from irrm_codec.tokenization import BOS_ID, EOS_ID, PAD_ID, UNK_ID, VALID_AA
 
 _EXPECTED_SPECIAL_IDS = {"[PAD]": PAD_ID, "[UNK]": UNK_ID, "[BOS]": BOS_ID, "[EOS]": EOS_ID}
 
 
-def _validate_special_ids(tokenizer, tokenizer_path):
-    """Check PAD/UNK/BOS/EOS ids match, since ForwardModel/InverseModel assume padding_idx=0."""
-    for token, expected_id in _EXPECTED_SPECIAL_IDS.items():
-        actual_id = tokenizer.token_to_id(token)
-        if actual_id != expected_id:
-            raise ValueError(
-                f"Tokenizer at {tokenizer_path} has {token}={actual_id}, expected {expected_id}."
-            )
+def validate_wordpiece_tokenizer(tokenizer, source):
+    """Accept the published author and student special-token layouts without remapping IDs."""
+    observed = {token: tokenizer.token_to_id(token) for token in _EXPECTED_SPECIAL_IDS}
+    author = {"[PAD]": 0, "[BOS]": 1, "[EOS]": 2, "[UNK]": 3}
+    student = {"[PAD]": 0, "[UNK]": 1, "[BOS]": 2, "[EOS]": 3}
+    if observed not in (author, student):
+        raise ValueError(f"Tokenizer at {source} has unsupported special IDs: {observed}.")
 
+
+def _validate_special_ids(tokenizer, tokenizer_path):
+    validate_wordpiece_tokenizer(tokenizer, tokenizer_path)
 
 def load_wordpiece_tokenizer(path) -> Tokenizer:
     """Load and validate a tokenizer.json. Returns the Tokenizer itself — it's picklable,
@@ -48,23 +50,28 @@ def encode_wordpiece(seq, tokenizer, max_len):
     return ids + [PAD_ID] * (max_len - len(ids))
 
 
-def encode_wordpiece_unpadded(seq, tokenizer, max_len):
-    """Encode a CDR3 without padding; batching supplies PAD tokens later.
-
-    This is the preferred interface for the joint Transformer because it keeps
-    sequence length explicit and avoids passing a fixed-width buffer through the
-    dataset for every example.
-    """
-    seq = "" if seq is None else str(seq).strip().upper()
-    if not seq:
+def encode_wordpiece_unpadded(
+    sequence: str,
+    tokenizer: Tokenizer,
+    max_len: int,
+) -> list[int]:
+    sequence = "" if sequence is None else str(sequence).strip().upper()
+    if not sequence:
         raise ValueError("Sequence must not be empty.")
-    ids = tokenizer.encode(seq).ids
-    if len(ids) > max_len:
+    invalid = sorted(set(sequence).difference(VALID_AA))
+    if invalid:
+        raise ValueError(f"Sequence contains unsupported amino acids: {invalid}")
+    token_ids = tokenizer.encode(sequence).ids
+    if not token_ids:
+        raise ValueError("WordPiece encoding must contain at least one token.")
+    if tokenizer.token_to_id("[UNK]") in token_ids:
+        raise ValueError(f"WordPiece encoding contains [UNK] for sequence {sequence!r}.")
+    if len(token_ids) > max_len:
         raise ValueError(
-            f"Sequence '{seq}' encodes to {len(ids)} WordPiece tokens, "
-            f"exceeds max_len={max_len}."
+            f"Sequence {sequence!r} encodes to {len(token_ids)} tokens, "
+            f"exceeding max_len={max_len}."
         )
-    return ids
+    return token_ids
 
 
 class WordpieceUnpaddedEncodeFn:
@@ -116,8 +123,9 @@ def encode_wordpiece_anchored(seq, tokenizer, max_len, left_anchor=1, right_anch
 def decode_wordpiece(token_ids, tokenizer, stop_at_eos=True):
     """Decode ids back to an amino-acid string, stopping at the first EOS by default."""
     ids = list(token_ids)
-    if stop_at_eos and EOS_ID in ids:
-        ids = ids[: ids.index(EOS_ID)]
+    eos_id = tokenizer.token_to_id("[EOS]")
+    if stop_at_eos and eos_id in ids:
+        ids = ids[: ids.index(eos_id)]
     return tokenizer.decode(ids, skip_special_tokens=True)
 
 

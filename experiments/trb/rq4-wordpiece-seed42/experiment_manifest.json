@@ -1,0 +1,25 @@
+{
+  "phase": "RQ4 tokenizer study",
+  "tokenizer_dir": "/home/evlasova/irrm-codec/experiments/trb/tokenizers/wordpiece-seed42",
+  "tokenizer_sha256": "064c1b6a60fec3a14913e821954c7eaf1a70b2335b77ef79fe4e2ed4fac62634",
+  "train_manifest_sha256": "6399cbea503191a652e7ecef0b8b859793f4ece16322fd49ce2ed03364484b01",
+  "preflight_job_id": "1425943",
+  "preflight_status": "ready",
+  "gpu_concurrency_cap": 2,
+  "submission_rule": "Exactly the registered WordPiece R and R+T+P baselines; no other GPU variants.",
+  "seed": 42,
+  "epochs": 40,
+  "architecture_adjustment": {
+    "reason": "WordPiece input vocabulary differs from the character reconstruction vocabulary.",
+    "input_vocab_size": 256,
+    "output_vocab_size": 25,
+    "shared_embeddings": false,
+    "character_baseline_parameters": 21697257,
+    "wordpiece_parameters": 21779177,
+    "parameter_increase": 81920
+  },
+  "experiments": [
+    {"experiment_id": "rq4-wordpiece-r-seed42", "weights_r_t_p": [1, 0, 0], "job_id": "1425944"},
+    {"experiment_id": "rq4-wordpiece-rtp-seed42", "weights_r_t_p": [1, 1, 1], "job_id": "1425945"}
+  ]
+}

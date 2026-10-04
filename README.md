@@ -7,10 +7,50 @@ working with TCR CDR3 amino-acid sequences, TCRemP embeddings, and generation pr
 
 - forward model: predicts a TCRemP embedding from CDR3 sequence input
 - inverse model: reconstructs a CDR3 sequence from a TCRemP embedding
-- joint Transformer: maps char- or WordPiece-tokenized CDR3s through one 320-D
-  bottleneck and jointly predicts TCRemP, `log10(pgen)`, and the original CDR3
+- joint Transformer: maps char- or WordPiece-tokenized CDR3s through a configurable latent
+  bottleneck (320 dimensions by default; 128 in the DATA-ANCHOR study) and jointly predicts TCRemP, `log10(pgen)`, and the original CDR3
 
 The repository is organized as a small training package with Python entrypoints, Slurm launchers, and analysis notebooks for both single-run and multi-chain workflows.
+
+## Canonical repository and publication workflows
+
+The maintained repository is [VEK239/irrm-codec](https://github.com/VEK239/irrm-codec).
+It combines the original Antigenomics implementation, student contributions, and
+Elizaveta Vlasova's joint RTP-CODEC and evaluation work. Original contributor
+commits remain in the Git history; see [integration provenance](docs/integration_provenance.md).
+
+The joint codec uses **R** (sequence reconstruction), **T** (TCRemP prediction),
+and **P** (generation-probability prediction) supervision. Input tokenizers include
+characters, WordPiece, and sequence-only terminal anchors. Reconstruction always
+uses character tokens. Latent width is configurable and is independent of the
+Transformer hidden width.
+
+- Joint codec and matched objective/tokenizer studies: `irrm_codec/train_multitask.py`,
+  `benchmark/prepare_trb_joint.py`, `experiments/trb/`, and [tokenizer study](docs/anchored_tokenizer_study.md).
+- Student reconstruction/Pgen benchmarks: `benchmark/prepare_splits.py`,
+  `benchmark/train_decoder.py`, `benchmark/train_pgen_arm.py`, and [historical report](REPORT.md).
+- Author external-model, residue-PCA, latent, and VDJdb evaluations: `benchmark/`
+  and their matching launchers in `slurm/`.
+- Historical result tables: `results/` (student runs) and `results/author/` (author runs). They describe the original runs, not a
+  new rerun of this integrated revision.
+
+For a CPU development setup without the Pgen-generation dependency:
+
+```bash
+python -m venv .venv
+# Linux/macOS: source .venv/bin/activate
+# PowerShell: .\.venv\Scripts\Activate.ps1
+python -m pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cpu
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+python -m irrm_codec.train_multitask --help
+```
+
+Install `requirements.txt` for OLGA/Pgen generation through mirpy. Install
+`requirements-benchmark.txt` only when running the optional ESM/TCR-BERT/SCEPTR
+encoders; their model weights and external datasets are obtained separately.
+See [reproduction and compatibility notes](docs/publication.md) before reusing
+historical checkpoints or submitting cluster examples.
 
 ## Repository layout
 
@@ -48,7 +88,7 @@ Register the environment as a Jupyter kernel:
 python -m ipykernel install --user --name irrm-codec --display-name "Python (irrm-codec)"
 ```
 
-Project dependencies, including notebook packages, are installed from [requirements.txt](/c:/Users/lizzka239/projects/irrm-codec/requirements.txt).
+Project dependencies, including notebook packages, are installed from [requirements.txt](requirements.txt).
 
 ## Input data
 

@@ -13,14 +13,16 @@
     "dropped_invalid_chars": 0,
     "dropped_too_short": 0,
     "dropped_too_long": 0,
+    "dropped_non_functional_v_call": 335,
+    "dropped_non_functional_j_call": 0,
     "dropped_duplicate_cdr3": 0,
-    "rows_kept": 99998,
+    "rows_kept": 99663,
     "dropped_non_finite_pgen": 2
   },
   "embedding_dim": 9000,
   "embedding_alignment": {
-    "length_corr": 0.5274442408242208,
-    "shuffled_length_corr": 0.0008568142944854723,
+    "length_corr": 0.5251705966285264,
+    "shuffled_length_corr": 0.008426662808806782,
     "min_corr_threshold": 0.3
   },
   "alignment_mode": "row_order",
@@ -29,9 +31,9 @@
     "path": "data\\benchmark\\trb\\pgen.tsv"
   },
   "split_sizes": {
-    "train": 79998,
-    "val": 9999,
-    "test": 10001
+    "train": 79730,
+    "val": 9966,
+    "test": 9967
   },
   "split_fractions": {
     "train": 0.8,
@@ -41,7 +43,7 @@
   "train_subsets": {
     "1k": 1000,
     "10k": 10000,
-    "all": 79998
+    "all": 79730
   },
   "cdr3_overlap_between_splits": {
     "train_val": 0,
@@ -51,54 +53,54 @@
   "targets": {
     "log10_pgen": {
       "train": {
-        "n_finite": 79998,
+        "n_finite": 79730,
         "n_non_finite": 0,
-        "mean": -8.34572029024153,
-        "std": 1.8845455361342092,
+        "mean": -8.342815174291603,
+        "std": 1.8788593865723895,
         "min": -28.06169119699202,
         "max": -5.092073042426336
       },
       "val": {
-        "n_finite": 9999,
+        "n_finite": 9966,
         "n_non_finite": 0,
-        "mean": -8.351515526786393,
-        "std": 1.909456406125435,
-        "min": -23.09528585214532,
-        "max": -5.365645796309452
+        "mean": -8.330849724502892,
+        "std": 1.8649352353948874,
+        "min": -23.57673660375092,
+        "max": -5.252935754631411
       },
       "test": {
-        "n_finite": 10001,
+        "n_finite": 9967,
         "n_non_finite": 0,
-        "mean": -8.34374768827681,
-        "std": 1.8479154152116826,
-        "min": -21.193822220414155,
-        "max": -5.3048644505016
+        "mean": -8.33931896402931,
+        "std": 1.8736677602653675,
+        "min": -22.300802363627707,
+        "max": -5.272577113539358
       }
     },
     "log10_pgen_1mm": {
       "train": {
-        "n_finite": 79998,
+        "n_finite": 79730,
         "n_non_finite": 0,
-        "mean": -6.52977416306943,
-        "std": 1.6300446772117814,
+        "mean": -6.526844812213512,
+        "std": 1.6264507836142756,
         "min": -25.268624790379345,
         "max": -3.967721318105829
       },
       "val": {
-        "n_finite": 9999,
+        "n_finite": 9966,
         "n_non_finite": 0,
-        "mean": -6.532824795313865,
-        "std": 1.6590462485672821,
-        "min": -20.17601369470008,
-        "max": -4.055332526062316
+        "mean": -6.516624042597638,
+        "std": 1.611059243463444,
+        "min": -19.405392492212744,
+        "max": -3.999265344121248
       },
       "test": {
-        "n_finite": 10001,
+        "n_finite": 9967,
         "n_non_finite": 0,
-        "mean": -6.522161324076908,
-        "std": 1.5951257276034596,
-        "min": -18.745888024917427,
-        "max": -4.127677056652921
+        "mean": -6.521180768534297,
+        "std": 1.6127152970829823,
+        "min": -19.90410715459764,
+        "max": -4.018798001189545
       }
     }
   },

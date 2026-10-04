@@ -1,0 +1,73 @@
+{
+  "study": "leakage-safe sequence-only TRB terminal-anchor tokenizers",
+  "status": "germline_submitted",
+  "base_git_revision": "3c873ff7b05e876a80cd226c8099fc1f8b282e91",
+  "uncommitted_remote_code_is_hash_locked": true,
+  "cpu_preflight_job_id": "1426217",
+  "cpu_preflight_sha256": "08d1d582842c2bdab0bafcd5d429f3b3042d02cb715b50e2638b5da652435a38",
+  "benchmark": {
+    "path": "/home/evlasova/irrm-codec/data/benchmark/trb",
+    "ready_sha256": "ce08945c0c0a975c2b05129695c26399456f185fe79b89914c0ad52e4fdcf167",
+    "target_standardizer_sha256": "ed0052ad510b7e0299628796162037cbb1a3c7e5e8d661ca4a668eb49a830b24",
+    "rows": 99430,
+    "train_rows": 79544,
+    "val_rows": 9943,
+    "test_rows": 9943
+  },
+  "matched_training": {
+    "inference_modality": "sequence_only",
+    "decoder_vocab_size": 25,
+    "objectives": ["reconstruction", "tcremp", "log10_pgen_1mm"],
+    "loss_weights": {"reconstruction": 1.0, "tcremp": 1.0, "pgen": 1.0},
+    "seed": 42,
+    "d_model": 320,
+    "latent_dim": 128,
+    "encoder_layers": 4,
+    "decoder_layers": 4,
+    "nhead": 8,
+    "ff_dim": 1280,
+    "batch_size": 64,
+    "epochs": 40,
+    "optimizer": "AdamW",
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "normalizer_fit": "locked train only",
+    "selection": "validation joint objective only"
+  },
+  "gpu_batch_script_sha256": "dcf3ef80f59e42ccde5b48cb97925603ec6062000b2b2cde12b378268effd452",
+  "runs": {
+    "edge_k": {
+      "condition": "EDGE-3",
+      "bundle_sha256": "8333622c01ad10bd3d176f71131705ad68feb0a1eed5039ed6ee352081888a24",
+      "input_vocab_size": 16256,
+      "parameter_count": 26344873,
+      "output_dir": "/home/evlasova/irrm-codec/experiments/trb/anchor-edge3-rtp-seed42",
+      "job_id": "1426221",
+      "terminal": true,
+      "best_epoch": 31,
+      "best_validation_joint_loss": 0.2154474285803342,
+      "test_loss_descriptive": 0.2144757355439235
+    },
+    "data_anchor": {
+      "condition": "DATA-ANCHOR",
+      "bundle_sha256": "8ef9aeddf8c069d4db898369f01f97e80160ba2ceb3c2354f18547467beeed4d",
+      "input_vocab_size": 1228,
+      "parameter_count": 21535913,
+      "output_dir": "/home/evlasova/irrm-codec/experiments/trb/anchor-data-rtp-seed42",
+      "job_id": "1426222",
+      "terminal": true,
+      "best_epoch": 25,
+      "best_validation_joint_loss": 0.20576476722275314,
+      "test_loss_descriptive": 0.20348657863661399
+    },
+    "germline_anchor": {
+      "condition": "GERMLINE-ANCHOR",
+      "bundle_sha256": "6e48150050325d916a2d09b3a7a0db4d74ad7233319dd49e01ba904d93d435b1",
+      "input_vocab_size": 387,
+      "parameter_count": 21266793,
+      "output_dir": "/home/evlasova/irrm-codec/experiments/trb/anchor-germline-rtp-seed42",
+      "job_id": "1426317",
+      "submission_gate": "satisfied: EDGE-3 and DATA-ANCHOR terminal before submission"
+    }
+  }
+}

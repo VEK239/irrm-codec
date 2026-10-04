@@ -1,0 +1,159 @@
+{
+  "phase": "WordPiece vocabulary-size sweep Stage A",
+  "git_revision": "3c873ff7b05e876a80cd226c8099fc1f8b282e91",
+  "implementation_state": "uncommitted focused sweep files preserved in the existing dirty worktree",
+  "implementation_sha256": {
+    "scripts/prepare_wordpiece_sweep.py": "3695f7a58aaf735bf56e6de960ce0eb11193cd4a929f77b1ea3e54155b4ecec5",
+    "scripts/preflight_wordpiece_sweep.py": "379f31dd2bccf1f51b99f148ca15aea86d2618a5be816eeae208bdaebb9a67ec",
+    "slurm/prepare_wordpiece_sweep.sbatch": "ace4cd922c31de4ab5671774f947e1972ed5c8010757b1017a9623c6727510fd",
+    "slurm/train_wordpiece_sweep.sbatch": "68171f1923559a94cbe6c8e3782fff2abf65bc519ad281fa5753cdd0e4c3699f"
+  },
+  "tokenizer_type": "wordpiece",
+  "vocab_sizes": [44, 64, 128, 256, 512, 1024, 2048, 4096],
+  "tokenizer_root": "/home/evlasova/irrm-codec/experiments/trb/tokenizers/wordpiece-sweep-seed42",
+  "fit_split": "locked train manifest only",
+  "fit_rows": 79544,
+  "special_token_ids": {"pad": 0, "bos": 1, "eos": 2, "unk": 3},
+  "selected_char_baseline": {
+    "job_id": "1425949",
+    "experiment_id": "rq5-char-rtp-d128-seed42",
+    "selection_basis": "minimum validation objective",
+    "latent_dim": 128,
+    "encoder_layers": 4,
+    "decoder_layers": 4
+  },
+  "model_invariants": {
+    "character_decoder_vocab_size": 25,
+    "separate_encoder_decoder_embeddings": true,
+    "full_rtp_weights": [1, 1, 1],
+    "seed": 42,
+    "epochs": 40,
+    "batch_size": 64,
+    "optimizer": "AdamW",
+    "learning_rate": 0.0003,
+    "locked_train_only_normalizer": true
+  },
+  "selection_rule": {
+    "primary": "minimum full validation objective",
+    "secondary": ["validation pgen RMSE", "validation reconstruction", "validation TCRemP"],
+    "test_metrics_used_for_selection": false
+  },
+  "gpu_concurrency_cap": 2,
+  "submission_order": [[44, 64], [128, 256], [512, 1024], [2048, 4096]],
+  "cpu_gate": {
+    "job_id": "1426071",
+    "status": "accepted",
+    "benchmark_ready_sha256": "ce08945c0c0a975c2b05129695c26399456f185fe79b89914c0ad52e4fdcf167",
+    "train_manifest_sha256": "6399cbea503191a652e7ecef0b8b859793f4ece16322fd49ce2ed03364484b01",
+    "train_corpus_sha256": "2478f48a82470e66ec78b0ec9fa06841868c6eed4697d387735f275a9c65597c"
+  },
+  "completed_conditions": {
+    "44": {
+      "job_id": "1426073",
+      "best_epoch": 30,
+      "best_validation_loss": 0.19666322000361444,
+      "validation_pgen_rmse": 0.3436580250763355,
+      "validation_reconstruction_loss": 0.004775686473650997,
+      "validation_tcremp_cosine": 0.9922292748291728,
+      "walltime_seconds_from_log": 2890.775,
+      "artifacts_verified": true,
+      "error_scan_clean": true,
+      "best_checkpoint_sha256": "5942370dbc2bbf36c3ad059077517c1c0cc41028c002ca4615e5e2ceda856f56"
+    },
+    "64": {
+      "job_id": "1426074",
+      "best_epoch": 28,
+      "best_validation_loss": 0.20685211541870166,
+      "validation_pgen_rmse": 0.3242212150811544,
+      "validation_reconstruction_loss": 0.007868499768547392,
+      "validation_tcremp_cosine": 0.9918381557562432,
+      "walltime_seconds_from_log": 3059.946,
+      "artifacts_verified": true,
+      "error_scan_clean": true,
+      "best_checkpoint_sha256": "36aa6aefd1745e0c11a2453829dc585ca09cc77a15680c4d05b70deb0b2dacef"
+    },
+    "128": {
+      "job_id": "1426122",
+      "best_epoch": 26,
+      "best_validation_loss": 0.20901615753579544,
+      "validation_pgen_rmse": 0.2838516566076911,
+      "validation_reconstruction_loss": 0.009563876309816215,
+      "validation_tcremp_cosine": 0.9917293340642124,
+      "walltime_seconds_from_log": 2814.008,
+      "artifacts_verified": true,
+      "error_scan_clean": true,
+      "best_checkpoint_sha256": "545d0485a07e60bbc549a22a9e8940d8a5c392420a9ccd9b1604bf95360826ef"
+    },
+    "256": {
+      "job_id": "1426123",
+      "best_epoch": 23,
+      "best_validation_loss": 0.20649890744307267,
+      "validation_pgen_rmse": 0.27295139267261015,
+      "validation_reconstruction_loss": 0.009048107677470638,
+      "validation_tcremp_cosine": 0.9917872234284248,
+      "walltime_seconds_from_log": 2953.805,
+      "artifacts_verified": true,
+      "error_scan_clean": true,
+      "best_checkpoint_sha256": "096de58b79b41b69693d40e6b4bfd57f31fae9d2aab1c5e9d727b3154b0db251"
+    },
+    "512": {
+      "job_id": "1426176",
+      "best_epoch": 25,
+      "best_validation_loss": 0.2104906694103532,
+      "validation_pgen_rmse": 0.30843847231625027,
+      "validation_reconstruction_loss": 0.008969121246607934,
+      "validation_tcremp_cosine": 0.9916971205322241,
+      "walltime_seconds_from_log": 2827.815,
+      "artifacts_verified": true,
+      "error_scan_clean": true,
+      "best_checkpoint_sha256": "740c521273e8ee34589ff928b262fd8c60aa34bbd88d567bba0daae73223e03a"
+    },
+    "1024": {
+      "job_id": "1426177",
+      "best_epoch": 28,
+      "best_validation_loss": 0.21072169335227994,
+      "validation_pgen_rmse": 0.3169206069630301,
+      "validation_reconstruction_loss": 0.006642488566201312,
+      "validation_tcremp_cosine": 0.9915933634905607,
+      "walltime_seconds_from_log": 2946.908,
+      "artifacts_verified": true,
+      "error_scan_clean": true,
+      "best_checkpoint_sha256": "64d8967b0633b4c645daf025f189fb209cc824297820e52e1def790817b7c338"
+    },
+    "2048": {
+      "job_id": "1426180",
+      "best_epoch": 24,
+      "best_validation_loss": 0.21218146349443082,
+      "validation_pgen_rmse": 0.3269114392204356,
+      "validation_reconstruction_loss": 0.011945437021755085,
+      "validation_tcremp_cosine": 0.9917859220653428,
+      "walltime_seconds_from_log": 2821.125,
+      "artifacts_verified": true,
+      "error_scan_clean": true,
+      "best_checkpoint_sha256": "4351751bc12f601785eb6efcd4e5d1b984919c0a0992a3214d6c219a998a225b"
+    },
+    "4096": {
+      "job_id": "1426181",
+      "best_epoch": 25,
+      "best_validation_loss": 0.21656744164125932,
+      "validation_pgen_rmse": 0.4111111972200827,
+      "validation_reconstruction_loss": 0.012061045652630643,
+      "validation_tcremp_cosine": 0.9918066222555235,
+      "walltime_seconds_from_log": 2929.382,
+      "artifacts_verified": true,
+      "error_scan_clean": true,
+      "best_checkpoint_sha256": "932cd6e4135862beb4fba3781a5593d7915e3471e40670d4a2c47b2a3276d6d6"
+    }
+  },
+  "validation_ranking": [44, 256, 64, 128, 512, 1024, 2048, 4096],
+  "selected_condition": {
+    "vocab_size": 44,
+    "selection_basis": "minimum full validation objective",
+    "best_validation_loss": 0.19666322000361444,
+    "character_baseline_validation_loss": 0.19693734171098476,
+    "replication_required_before_confirmatory_claim": true
+  },
+  "active_conditions": {},
+  "submission_status": "stage_a_complete",
+  "replication_status": "not_authorized"
+}

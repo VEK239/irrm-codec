@@ -188,6 +188,8 @@ class MultiTaskMetricAccumulator:
         covariance = self.pgen_sum_cross - self.pgen_sum_pred * self.pgen_sum_target / n
         pearson_denom = math.sqrt(max(pred_var, 0.0) * max(target_var, 0.0))
         pearson = covariance / pearson_denom if pearson_denom > 0 else float("nan")
+        if math.isfinite(pearson):
+            pearson = max(-1.0, min(1.0, pearson))
 
         metrics.update(
             {

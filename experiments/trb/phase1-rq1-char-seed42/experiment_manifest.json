@@ -1,0 +1,35 @@
+{
+  "phase": "Phase 1 / RQ1",
+  "tokenizer": "char",
+  "seed": 42,
+  "gpu_concurrency_cap": 2,
+  "submission_rule": "Exactly the two registered baselines; no further GPU jobs until both are terminal and summarized.",
+  "base_git_revision": "3c873ff7b05e876a80cd226c8099fc1f8b282e91",
+  "saved_pr_revision": "330dfdfb48bd867a195599043405e4d89999673e",
+  "benchmark_path": "/home/evlasova/irrm-codec/data/benchmark/trb",
+  "benchmark_preflight": "/home/evlasova/irrm-codec/experiments/trb/phase1-rq1-char-seed42/preflight.json",
+  "training_code_sha256": {
+    "irrm_codec/tokenization.py": "649d157fa9c87f304a314f5009fed304d511562fa0f56df57dc4c0f06aa11936",
+    "irrm_codec/multitask_data.py": "5c8f1b1f1e21d2044028291d7e49e54090cce475d5e124cc3798ff2876b5f52f",
+    "irrm_codec/multitask_losses.py": "1d46e24c335fee02ac7344c6278de5b112d9f3bc57915a25df31db444d361649",
+    "irrm_codec/multitask_metrics.py": "891e52658e9470f8d213f517125670fbedd752efeb636493ca2a41a99e309e64",
+    "irrm_codec/multitask_transformer.py": "deab3ff9edc851a37683f1c2cd314e262c6b09171d407db7621962f58ed67cfa",
+    "irrm_codec/train_multitask.py": "0eae9a7d4dd233e52c386a4e086d262b6236d4fb8505550ea77898f5d30ce4de"
+  },
+  "experiments": [
+    {
+      "experiment_id": "rq1-char-r-seed42",
+      "condition": "R",
+      "loss_weights": {"reconstruction": 1.0, "tcremp": 0.0, "pgen": 0.0},
+      "output_dir": "/home/evlasova/irrm-codec/experiments/trb/rq1-char-r-seed42",
+      "job_id": "1425896"
+    },
+    {
+      "experiment_id": "rq1-char-rtp-seed42",
+      "condition": "R+T+P",
+      "loss_weights": {"reconstruction": 1.0, "tcremp": 1.0, "pgen": 1.0},
+      "output_dir": "/home/evlasova/irrm-codec/experiments/trb/rq1-char-rtp-seed42",
+      "job_id": "1425897"
+    }
+  ]
+}

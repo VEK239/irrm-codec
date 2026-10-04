@@ -37,7 +37,11 @@ def parse_args() -> argparse.Namespace:
         choices=["log10_pgen", "log10_pgen_1mm"],
         default="log10_pgen_1mm",
     )
-    parser.add_argument("--tokenizer-type", choices=["char", "wordpiece"], default="char")
+    parser.add_argument(
+        "--tokenizer-type",
+        choices=["char", "wordpiece", "edge_k", "data_anchor", "germline_anchor"],
+        default="char",
+    )
     parser.add_argument("--tokenizer-path")
     parser.add_argument("--max-sequence-len", type=int, default=40)
 
@@ -56,6 +60,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pgen-loss-weight", type=float, default=1.0)
     parser.add_argument("--reconstruction-loss-weight", type=float, default=1.0)
     parser.add_argument("--tcremp-mse-fraction", type=float, default=0.7)
+    parser.add_argument("--tcremp-centered-cosine-weight", type=float, default=0.0)
+    parser.add_argument("--tcremp-pairwise-log-distance-weight", type=float, default=0.0)
     parser.add_argument("--pgen-huber-delta", type=float, default=0.5)
     parser.add_argument("--label-smoothing", type=float, default=0.0)
 
@@ -70,6 +76,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--scheduler-patience", type=int, default=2)
     parser.add_argument("--scheduler-min-lr", type=float, default=1e-6)
     parser.add_argument("--standardizer-chunk-size", type=int, default=1024)
+    parser.add_argument(
+        "--standardizer-path",
+        help=(
+            "Locked train-only target standardizer. Defaults to "
+            "<data-dir>/target_standardizer.npz for train-subset=all."
+        ),
+    )
 
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--num-workers", type=int, default=0)
@@ -130,6 +143,16 @@ def validate_args(args: argparse.Namespace) -> None:
         == 0
     ):
         raise ValueError("At least one task loss weight must be positive.")
+    geometry_weight = (
+        args.tcremp_centered_cosine_weight
+        + args.tcremp_pairwise_log_distance_weight
+    )
+    if (
+        args.tcremp_centered_cosine_weight < 0
+        or args.tcremp_pairwise_log_distance_weight < 0
+        or geometry_weight > 1
+    ):
+        raise ValueError("TCRemP geometry weights must be non-negative and sum to at most 1.")
 
 
 def choose_device(requested: str) -> torch.device:
@@ -178,6 +201,7 @@ def _resolve_best_checkpoint(output_dir: Path, resume: str | None) -> Path:
         "No best checkpoint is available. Expected one of: "
         + ", ".join(str(candidate) for candidate in candidates)
     )
+
 
 
 def run_epoch(
@@ -247,9 +271,7 @@ def run_epoch(
 
             if is_train:
                 accumulation_group_size = _gradient_accumulation_group_size(
-                    step,
-                    limit,
-                    gradient_accumulation_steps,
+                    step, limit, gradient_accumulation_steps
                 )
                 scaled_loss = losses["loss"] / accumulation_group_size
                 scaler.scale(scaled_loss).backward()
@@ -383,18 +405,42 @@ def main() -> None:
     test_indices = select_split_indices(table, args.data_dir, "test")
     tokenizer = resolve_encoder_tokenizer(args.tokenizer_type, args.tokenizer_path)
 
-    standardizer_path = output_dir / "target_standardizer.npz"
+    output_standardizer_path = output_dir / "target_standardizer.npz"
+    locked_standardizer_path = (
+        Path(args.standardizer_path)
+        if args.standardizer_path
+        else Path(args.data_dir) / "target_standardizer.npz"
+    )
     resume_standardizer_path = (
-        Path(args.resume).parent / "target_standardizer.npz"
-        if args.resume
-        else None
+        Path(args.resume).parent / "target_standardizer.npz" if args.resume else None
     )
     if resume_standardizer_path is not None and resume_standardizer_path.exists():
         standardizer = TargetStandardizer.load(resume_standardizer_path)
-        if resume_standardizer_path.resolve() != standardizer_path.resolve():
-            standardizer.save(standardizer_path)
-    elif args.resume and standardizer_path.exists():
-        standardizer = TargetStandardizer.load(standardizer_path)
+        standardizer.save(output_standardizer_path)
+        if standardizer.pgen_target != args.pgen_target:
+            raise ValueError("Resume checkpoint and requested pgen target do not match.")
+        if standardizer.train_rows != len(train_indices):
+            raise ValueError("Resume standardizer and requested train subset do not match.")
+        if len(standardizer.tcremp_mean) != embeddings.shape[1]:
+            raise ValueError("Resume standardizer and TCRemP dimension do not match.")
+    elif args.resume and output_standardizer_path.exists():
+        standardizer = TargetStandardizer.load(output_standardizer_path)
+        if standardizer.pgen_target != args.pgen_target:
+            raise ValueError("Resume checkpoint and requested pgen target do not match.")
+        if standardizer.train_rows != len(train_indices):
+            raise ValueError("Resume standardizer and requested train subset do not match.")
+        if len(standardizer.tcremp_mean) != embeddings.shape[1]:
+            raise ValueError("Resume standardizer and TCRemP dimension do not match.")
+    elif args.train_subset == "all" and locked_standardizer_path.exists():
+        logger.info("loading locked benchmark standardizer from %s", locked_standardizer_path)
+        standardizer = TargetStandardizer.load(locked_standardizer_path)
+        if standardizer.pgen_target != args.pgen_target:
+            raise ValueError("Locked benchmark standardizer pgen target does not match.")
+        if standardizer.train_rows != len(train_indices):
+            raise ValueError("Locked benchmark standardizer train row count does not match.")
+        if len(standardizer.tcremp_mean) != embeddings.shape[1]:
+            raise ValueError("Locked benchmark standardizer TCRemP dimension does not match.")
+        standardizer.save(output_standardizer_path)
     else:
         logger.info(
             "computing train-only target statistics rows=%d embedding_dim=%d",
@@ -408,14 +454,7 @@ def main() -> None:
             args.pgen_target,
             chunk_size=args.standardizer_chunk_size,
         )
-        standardizer.save(standardizer_path)
-    if args.resume:
-        if standardizer.pgen_target != args.pgen_target:
-            raise ValueError("Resume checkpoint and requested pgen target do not match.")
-        if standardizer.train_rows != len(train_indices):
-            raise ValueError("Resume standardizer and requested train subset do not match.")
-        if len(standardizer.tcremp_mean) != embeddings.shape[1]:
-            raise ValueError("Resume standardizer and TCRemP dimension do not match.")
+        standardizer.save(output_standardizer_path)
     standardizer_tensors = standardizer.as_torch(device)
 
     datasets = {
@@ -480,6 +519,8 @@ def main() -> None:
             reconstruction=args.reconstruction_loss_weight,
         ),
         tcremp_mse_fraction=args.tcremp_mse_fraction,
+        tcremp_centered_cosine_weight=args.tcremp_centered_cosine_weight,
+        tcremp_pairwise_log_distance_weight=args.tcremp_pairwise_log_distance_weight,
         pgen_huber_delta=args.pgen_huber_delta,
         label_smoothing=args.label_smoothing,
     )
@@ -525,7 +566,12 @@ def main() -> None:
             "test_rows": len(test_indices),
             "tcremp_dim": int(embeddings.shape[1]),
             "pgen_target": args.pgen_target,
-            "standardizer": str(standardizer_path),
+            "standardizer": str(output_standardizer_path),
+            "locked_standardizer_source": (
+                str(locked_standardizer_path)
+                if args.train_subset == "all" and locked_standardizer_path.exists()
+                else None
+            ),
         },
     )
     logger.info(
@@ -660,11 +706,6 @@ def main() -> None:
             break
 
     best_checkpoint_path = _resolve_best_checkpoint(output_dir, args.resume)
-    if best_checkpoint_path != output_dir / "best.pt":
-        logger.warning(
-            "No best checkpoint was created in this output directory; evaluating %s instead.",
-            best_checkpoint_path,
-        )
     best_checkpoint = torch.load(best_checkpoint_path, map_location=device)
     model.load_state_dict(best_checkpoint["model_state"])
     test_metrics = run_epoch(

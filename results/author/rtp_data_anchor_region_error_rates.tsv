@@ -1,0 +1,4 @@
+region	eligible_positions	wrong_positions	error_rate
+N_edge_1_3	29316	3	0.00010233319688907081
+middle	88960	584	0.006564748201438849
+C_edge_1_3	29316	1	3.411106562969027e-05

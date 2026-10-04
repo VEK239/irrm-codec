@@ -1,0 +1,34 @@
+{
+  "phase": "RQ5 Stage 1 bottleneck-width sweep",
+  "tokenizer": "char",
+  "supervision": "R+T+P",
+  "seed": 42,
+  "epochs": 40,
+  "gpu_concurrency_cap": 2,
+  "submission_rule": "Exactly d128 and d512; d320 is reused from completed job 1425897.",
+  "benchmark_path": "/home/evlasova/irrm-codec/data/benchmark/trb",
+  "benchmark_ready_sha256": "ce08945c0c0a975c2b05129695c26399456f185fe79b89914c0ad52e4fdcf167",
+  "preflight_job_id": "1425948",
+  "preflight_status": "ready",
+  "width_definition": "latent_dim only; d_model=320 and nhead=8 fixed",
+  "baselines": [
+    {
+      "latent_dim": 128,
+      "parameter_count": 21142953,
+      "output_dir": "/home/evlasova/irrm-codec/experiments/trb/rq5-char-rtp-d128-seed42",
+      "job_id": "1425949"
+    },
+    {
+      "latent_dim": 320,
+      "parameter_count": 21697257,
+      "output_dir": "/home/evlasova/irrm-codec/experiments/trb/rq1-char-rtp-seed42",
+      "job_id": "1425897"
+    },
+    {
+      "latent_dim": 512,
+      "parameter_count": 22251561,
+      "output_dir": "/home/evlasova/irrm-codec/experiments/trb/rq5-char-rtp-d512-seed42",
+      "job_id": "1425950"
+    }
+  ]
+}

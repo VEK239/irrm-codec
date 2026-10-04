@@ -1,0 +1,16 @@
+kind	name	path	sha256
+training_source	airr	/projects/immunestatus/vdjrearm/airr_format/trb_background_100k.tsv	403e1db78a1a4b3006191d722ef30f533f194b27b7141e3af0e01c1e819cfaf3
+training_source	tcremp_embeddings	/projects/immunestatus/vdjrearm/tcremp/trb_background_100k_tcremp.parquet	not recorded for large binary
+training_source	tcremp_representations	/projects/immunestatus/vdjrearm/tcremp/trb_background_100k_tcremp_representations.tsv	52ae2d30b446b2afd5609a9da987b95facacb8bd1a2670851e98afe21fb5b2c1
+training_source	pgen	/projects/immunestatus/vdjrearm/pgen_1mm_background_100k/trb_background_100k_pgen.tsv	25de4450e1593c7805acaf1819439b563bf42357e24525f49d75ba93afe36caa
+training_source	tcremp_writer	/home/evlasova/tcremp-git/tcremp/tcremp/tcremp_run.py	0052c8021fe23f542ff8d75c4e9246d78c0cd691fa93094fba176cbfec4c4252
+benchmark	READY	/home/evlasova/irrm-codec/data/benchmark/trb/READY.json	ce08945c0c0a975c2b05129695c26399456f185fe79b89914c0ad52e4fdcf167
+benchmark	train-only normalizer	/home/evlasova/irrm-codec/data/benchmark/trb/target_standardizer.npz	ed0052ad510b7e0299628796162037cbb1a3c7e5e8d661ca4a668eb49a830b24
+tokenizer	DATA-ANCHOR	/home/evlasova/irrm-codec/experiments/trb/tokenizers/anchored-seed42/data_anchor/anchored_tokenizer.json	8ef9aeddf8c069d4db898369f01f97e80160ba2ceb3c2354f18547467beeed4d
+downstream	VDJdb 2025-07-30 vdjdb.txt	pinned official snapshot	191290d17ed3f489ac32b476eda6b9e3db93fab05c0968fb5da567187a27a94a
+downstream	VDJdb cluster_members.txt	pinned official motif membership	b5d572d912c180ff0221f8966cdacedbcd978467f5367f947dbee71bdd12b1c4
+result	viral multi-epitope evaluation	/home/evlasova/irrm-codec/experiments/trb/vdjdb-viral-motif-top10/evaluation-1426501	712a79c9d4a2661c7da3db9d8caa0e9c04dbf59e790edfa820889bc07309ed76
+student_pr	reconstruction benchmark PR #3	https://github.com/antigenomics/irrm-codec/pull/3	git-commit:603ea761f7439a2faffe314525c5ac67def28357
+student_pr	pgen benchmark PR #4	https://github.com/antigenomics/irrm-codec/pull/4	git-commit:b96f06eb42d9c92e3982103bb903a1dc67d59138
+result	external reconstruction locked-cohort rerun	/home/evlasova/irrm-codec/experiments/trb/external-model-benchmark/results/reconstruction/reconstruction_summary.csv	5f15ae270e153ef179cddb8651d8e7f75d5ceb3b77aa8c66c48c66fc5d0739d4
+result	external pgen locked-cohort rerun	/home/evlasova/irrm-codec/experiments/trb/external-model-benchmark/results/pgen/pgen_summary.csv	1be5e255e91c0b55f2c7429aeb48b75ce332af524fee17779f43070a88b8a362
