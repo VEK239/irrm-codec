@@ -41,7 +41,7 @@ No cluster jobs are submitted by installing this repository or running its CPU t
 Run `python -m pytest -q` from the repository root. Tests cover reconstruction,
 objective combinations, tokenizers, data identity/alignment, standardizers, metrics,
 external benchmark bookkeeping, and VDJdb cohort rules. Optional external encoders
-need requirements/benchmarks.txt plus model downloads; complete GPU training and
+need research/environments/benchmarks.txt plus model downloads; complete GPU training and
 external-data experiments require separately provisioned resources.
 
 Tab-separated result files preserve empty terminal fields. Trailing tabs in these

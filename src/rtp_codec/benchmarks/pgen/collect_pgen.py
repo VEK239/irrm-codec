@@ -24,7 +24,7 @@ SUBSET_ORDER = {"1k": 0, "10k": 1, "all": 2}
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--runs-dir", default="artifacts/benchmark/pgen")
-    p.add_argument("--output-dir", default="results/pgen")
+    p.add_argument("--output-dir", default="research/results/pgen")
     return p.parse_args()
 
 

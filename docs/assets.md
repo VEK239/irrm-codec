@@ -1,6 +1,6 @@
 # Data and model assets
 
-The Git repository distributes code, small format examples, experiment configuration records and result tables. It does not currently distribute the locked dataset, trained model checkpoint, DATA-ANCHOR bundle or a DOI-backed model/data release. Their existing hashes and run locations are recorded in [results/paper/provenance_and_hashes.tsv](../results/paper/provenance_and_hashes.tsv); recorded cluster paths describe past runs and are not public download links.
+The Git repository distributes code, small format examples, experiment configuration records and result tables. It does not currently distribute the locked dataset, trained model checkpoint, DATA-ANCHOR bundle or a DOI-backed model/data release. Their existing hashes and run locations are recorded in [research/results/paper/provenance_and_hashes.tsv](../research/results/paper/provenance_and_hashes.tsv); recorded cluster paths describe past runs and are not public download links.
 
 ## Prepared training dataset
 

@@ -14,6 +14,6 @@ The DATA-ANCHOR tokenizer uses train-derived edge motifs and a separately traine
 
 Full RTP training assigns weight 1 to each term. Inactive objectives have weight 0. Normalization statistics are fitted only on the training rows. TCRemP and Pgen targets are precomputed; sequence encoding after training does not run either target generator.
 
-Implementation: [codec](../src/rtp_codec/models/codec.py), [objectives](../src/rtp_codec/training/objectives.py), [trainer](../src/rtp_codec/training/multitask.py). The seven [paper presets](../configs/paper/) hold architecture and optimization settings fixed while changing objective weights.
+Implementation: [codec](../src/rtp_codec/models/codec.py), [objectives](../src/rtp_codec/training/objectives.py), [trainer](../src/rtp_codec/training/multitask.py). The seven [paper presets](../research/configs/paper) hold architecture and optimization settings fixed while changing objective weights.
 
-Earlier configurations under `configs/trb` include other bottleneck widths and tokenizer choices. Always load the architecture recorded in a checkpoint rather than substituting the current defaults.
+Earlier configurations under `research/configs/trb` include other bottleneck widths and tokenizer choices. Always load the architecture recorded in a checkpoint rather than substituting the current defaults.

@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "Please cite the RTP-CODEC manuscript and this repository when using the code."
+message: "Please cite RTP-CODEC, accepted to BioFM @ ICDM'26, and this repository when using the code."
 title: "RTP-CODEC: Learning Compact TCR Representations from Multiple Biological Objectives"
 type: software
 version: 0.1.0
