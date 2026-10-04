@@ -40,20 +40,20 @@ Thumbs.db
 *.log
 
 # Project artifacts
-artifacts/
+/artifacts/
 
 # Local data
 /data/
 
 # Reports
-reports/
+/reports/
 
 # Generated experiments and local publication scratch
 .publish-*/
 .tmp*/
-tmp/
-output/
-manuscript/
+/tmp/
+/output/
+/manuscript/
 *.pt
 *.pth
 *.npy
