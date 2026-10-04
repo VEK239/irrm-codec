@@ -18,10 +18,10 @@ dependencies = [
 
 [project.optional-dependencies]
 pgen = ["mirpy-lib @ git+https://github.com/antigenomics/mirpy.git@11a5fd1ac12edd22e12a2bb167ab9dfb55ccefd4"]
-benchmarks = ["fair-esm", "transformers", "sceptr"]
+benchmarks = ["fair-esm", "transformers", "sceptr", "matplotlib>=3.8", "seaborn>=0.13"]
 tracking = ["wandb"]
 notebooks = ["jupyterlab", "matplotlib", "seaborn"]
-dev = ["pytest>=8,<9"]
+dev = ["pytest>=8,<9", "matplotlib>=3.8"]
 
 [project.scripts]
 rtp-codec = "rtp_codec.cli:main"

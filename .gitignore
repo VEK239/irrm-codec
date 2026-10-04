@@ -43,7 +43,7 @@ Thumbs.db
 artifacts/
 
 # Local data
-data/
+/data/
 
 # Reports
 reports/
@@ -62,4 +62,4 @@ experiments/**/wandb/
 experiments/**/predictions/
 
 # Generated training runs (versioned presets live in configs/)
-experiments/
+/experiments/
