@@ -1,1 +1,1 @@
-"""Baseline benchmark for IRRM-CODEC on reconstruction and pgen prediction."""
+"""Dataset preparation utilities for reproducible IRRM-CODEC benchmarks."""

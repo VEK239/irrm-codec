@@ -1,8 +1,8 @@
 AA_VOCAB = {
     "<PAD>": 0,
-    "<UNK>": 1,
-    "<BOS>": 2,
-    "<EOS>": 3,
+    "<BOS>": 1,
+    "<EOS>": 2,
+    "<UNK>": 3,
     "-": 4,
     "A": 5,
     "C": 6,
@@ -113,4 +113,3 @@ def decode(tokens, stop_at_eos=True, remove_gaps=False):
     if remove_gaps:
         return strip_gaps(sequence)
     return sequence
-

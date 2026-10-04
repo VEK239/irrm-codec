@@ -9,7 +9,7 @@ from pathlib import Path
 from tokenizers import Tokenizer
 from tokenizers.models import WordPiece
 
-from irrm_codec.tokenization import BOS_ID, EOS_ID, PAD_ID, UNK_ID
+from irrm_codec.tokenization import BOS_ID, EOS_ID, PAD_ID, UNK_ID, VALID_AA
 
 _EXPECTED_SPECIAL_IDS = {"[PAD]": PAD_ID, "[UNK]": UNK_ID, "[BOS]": BOS_ID, "[EOS]": EOS_ID}
 
@@ -48,23 +48,28 @@ def encode_wordpiece(seq, tokenizer, max_len):
     return ids + [PAD_ID] * (max_len - len(ids))
 
 
-def encode_wordpiece_unpadded(seq, tokenizer, max_len):
-    """Encode a CDR3 without padding; batching supplies PAD tokens later.
-
-    This is the preferred interface for the joint Transformer because it keeps
-    sequence length explicit and avoids passing a fixed-width buffer through the
-    dataset for every example.
-    """
-    seq = "" if seq is None else str(seq).strip().upper()
-    if not seq:
+def encode_wordpiece_unpadded(
+    sequence: str,
+    tokenizer: Tokenizer,
+    max_len: int,
+) -> list[int]:
+    sequence = "" if sequence is None else str(sequence).strip().upper()
+    if not sequence:
         raise ValueError("Sequence must not be empty.")
-    ids = tokenizer.encode(seq).ids
-    if len(ids) > max_len:
+    invalid = sorted(set(sequence).difference(VALID_AA))
+    if invalid:
+        raise ValueError(f"Sequence contains unsupported amino acids: {invalid}")
+    token_ids = tokenizer.encode(sequence).ids
+    if not token_ids:
+        raise ValueError("WordPiece encoding must contain at least one token.")
+    if UNK_ID in token_ids:
+        raise ValueError(f"WordPiece encoding contains [UNK] for sequence {sequence!r}.")
+    if len(token_ids) > max_len:
         raise ValueError(
-            f"Sequence '{seq}' encodes to {len(ids)} WordPiece tokens, "
-            f"exceeds max_len={max_len}."
+            f"Sequence {sequence!r} encodes to {len(token_ids)} tokens, "
+            f"exceeding max_len={max_len}."
         )
-    return ids
+    return token_ids
 
 
 class WordpieceUnpaddedEncodeFn:

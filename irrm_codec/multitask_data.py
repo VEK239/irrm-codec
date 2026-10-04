@@ -15,13 +15,6 @@ from irrm_codec.tokenization import (
     encode_raw,
     encode_reconstruction_pair,
 )
-from irrm_codec.wordpiece_tokenization import (
-    WordpieceUnpaddedEncodeFn,
-    load_wordpiece_tokenizer,
-    wordpiece_vocab_size,
-)
-
-
 REQUIRED_DATASET_COLUMNS = {
     "row_index",
     "junction_aa",
@@ -95,10 +88,35 @@ def resolve_encoder_tokenizer(
             path=None,
             encode=encode_raw,
         )
+    if tokenizer_type in {"edge_k", "data_anchor", "germline_anchor"}:
+        if not tokenizer_path:
+            raise ValueError("--tokenizer-path is required for anchored input.")
+        from irrm_codec.anchored_tokenization import (
+            AnchoredUnpaddedEncodeFn,
+            load_anchored_tokenizer,
+        )
+
+        tokenizer = load_anchored_tokenizer(tokenizer_path)
+        if tokenizer.kind != tokenizer_type:
+            raise ValueError(
+                f"Tokenizer bundle kind {tokenizer.kind!r} does not match {tokenizer_type!r}."
+            )
+        return EncoderTokenizer(
+            name=tokenizer.kind,
+            vocab_size=tokenizer.vocab_size,
+            path=str(Path(tokenizer_path)),
+            encode=AnchoredUnpaddedEncodeFn(tokenizer),
+        )
     if tokenizer_type != "wordpiece":
         raise ValueError(f"Unsupported tokenizer type: {tokenizer_type!r}.")
     if not tokenizer_path:
         raise ValueError("--tokenizer-path is required for WordPiece input.")
+
+    from irrm_codec.wordpiece_tokenization import (
+        WordpieceUnpaddedEncodeFn,
+        load_wordpiece_tokenizer,
+        wordpiece_vocab_size,
+    )
 
     tokenizer = load_wordpiece_tokenizer(tokenizer_path)
 
