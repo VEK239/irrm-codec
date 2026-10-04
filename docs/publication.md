@@ -43,3 +43,6 @@ objective combinations, tokenizers, data identity/alignment, standardizers, metr
 external benchmark bookkeeping, and VDJdb cohort rules. Optional external encoders
 need requirements-benchmark.txt plus model downloads; complete GPU training and
 external-data experiments require separately provisioned resources.
+
+Tab-separated result files preserve empty terminal fields. Trailing tabs in these
+files represent missing values and are retained for table-schema fidelity.
